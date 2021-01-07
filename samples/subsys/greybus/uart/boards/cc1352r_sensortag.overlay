@@ -67,13 +67,21 @@
 		greybus-string = "Greybus Service Sample Application";
 	};
 
-	gbstring4: gbstring3 {
+	gbstring3: gbstring3 {
 		label = "GBSTRING_3";
 		status = "okay";
 		compatible = "zephyr,greybus-string";
 		id = <3>;
 		greybus-string = "bme280";
 	};
+
+	gbstring4: gbstring4 {
+			label = "GBSTRING_4";
+			status = "okay";
+			compatible = "zephyr,greybus-string";
+			id = <4>;
+			greybus-string = "opt3001";
+		};
 
 	gbinterface0 {
 		label = "GBINTERFACE_0";
@@ -129,16 +137,7 @@
 			id = <1>;
 			cport-protocol = <CPORT_PROTOCOL_GPIO>;
 		};
-	};
-	
-	gbbundle2 {
-		label = "GBBUNDLE_2";
-		status = "okay";
-		compatible = "zephyr,greybus-bundle";
-		greybus-bundle;
-		id = <2>;
-		bundle-class = <BUNDLE_CLASS_BRIDGED_PHY>;		
-				
+
 		gbi2c0 {
 			label = "GBI2C_0";
 			status = "okay";
@@ -148,16 +147,7 @@
 			id = <2>;
 			cport-protocol = <CPORT_PROTOCOL_I2C>;
 		};
-	};
-	
-	gbbundle3 {
-		label = "GBBUNDLE_3";
-		status = "okay";
-		compatible = "zephyr,greybus-bundle";
-		greybus-bundle;
-		id = <3>;
-		bundle-class = <BUNDLE_CLASS_BRIDGED_PHY>;		
-				
+
 		gbspi0 {
 			label = "GBSPI_0";
 			status = "okay";
@@ -199,11 +189,20 @@
 		label = "GBDEVICE_0";
 		status = "okay";
 		compatible = "zephyr,greybus-device";
-		greybus-device;
 		id = <1>;
-		driver-string-id = <3>;
+		driver-string-id = <&gbstring3>;
 		protocol = <3>;
-		addr = <118>;
+		addr = <0x76>;
+	};
+
+	gbdevice1 {
+		label = "GBDEVICE_1";
+		status = "okay";
+		compatible = "zephyr,greybus-device";
+		id = <2>;
+		driver-string-id = <&gbstring4>;
+		protocol = <3>;
+		addr = <0x44>;
 	};
 
 	gbmikrobus0 {

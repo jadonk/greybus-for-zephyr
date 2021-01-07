@@ -308,6 +308,17 @@ static int identify_descriptor(struct greybus_descriptor *desc, size_t size,
             }
         }
         break;
+    case GREYBUS_TYPE_PROPERTY:
+		expected_size += sizeof(struct greybus_descriptor_property);
+		expected_size += desc->property.length;
+		expected_size = ALIGN(expected_size);
+		break;
+	case GREYBUS_TYPE_DEVICE:
+		expected_size += sizeof(struct greybus_descriptor_device);
+		break;
+	case GREYBUS_TYPE_MIKROBUS:
+		expected_size += sizeof(struct greybus_descriptor_mikrobus);
+		break;
     case GREYBUS_TYPE_INVALID:
     default:
         LOG_ERR("invalid descriptor type (%hhu)", desc_header->type);

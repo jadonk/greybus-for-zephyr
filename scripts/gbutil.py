@@ -12,7 +12,7 @@ def get_string_descriptors(defines, iface):
         if key.endswith('_P_compatible_IDX_0') and val == '"zephyr,greybus-string"':
             node = key[:-len('_P_compatible_IDX_0')]
             id_ = int(defines[node + '_P_id'])
-            string = defines[node + '_P_greybus_string']
+            string = defines[node + '_P_greybus_string'].strip('\"')
             sd[id_] = StringDescriptor(id_, string, None)
             if id_ == iface.vsid or id_ == iface.psid:
                 sd[id_].parent = iface
@@ -55,6 +55,38 @@ def get_mikrobus_descriptor(defines):
                             sda, mosi, miso, sck, cs, rst, an, None)
             break
     return mikrobus
+
+def get_device_descriptors(defines):
+    device = {}
+    for key in defines:
+        val = defines[key]
+        if key.endswith('_P_compatible_IDX_0') and val == '"zephyr,greybus-device"':
+            node = key[:-len('_P_compatible_IDX_0')]
+            dsh = defines[node + '_P_driver_string_id_IDX_0_PH']
+            dsi = int(defines[dsh + '_P_id'])
+            id_ = int(defines[node + '_P_id'])
+            protocol = int(defines[node + '_P_protocol'])
+            addr = int(defines[node + '_P_addr'])
+            if node + '_P_irq' in defines.keys():
+                irq = int(defines[node + '_P_irq'])
+            else:
+                irq = 0
+            if node + '_P_irqtype' in defines.keys():
+                irq_type = int(defines[node + '_P_irqtype'])
+            else:
+                irq_type = 0
+            if node + '_P_max_speed_hz' in defines.keys():
+                maxspeedhz = int(defines[node + '_P_max_speed_hz'])
+            else:
+                maxspeedhz = 0
+            if node + '_P_mode' in defines.keys():
+                mode = int(defines[node + '_P_mode'])
+            else:
+                mode = 0
+            props = [dsi, protocol, addr, irq, irq_type, \
+                     maxspeedhz, mode, 0, 0, 0, 0]
+            device[id_] = DeviceDescriptor(id_, props, None)
+    return device
 
 def get_bundle_descriptors(defines):
     bd = {}
@@ -102,6 +134,7 @@ def dt2mnfs(fn):
     mikrobus_desc = get_mikrobus_descriptor(defines)
     string_descs = get_string_descriptors(defines, interface_desc)
     bundle_descs = get_bundle_descriptors(defines)
+    device_descs = get_device_descriptors(defines)
     cport_descs = get_cport_descriptors(defines)
 
     m = Manifest()
@@ -115,6 +148,8 @@ def dt2mnfs(fn):
         m.add_bundle_desc(bundle_descs[d])
     for d in cport_descs:
         m.add_cport_desc(cport_descs[d])
+    for d in device_descs:
+        m.add_device_desc(device_descs[d])
 
     return m
 
