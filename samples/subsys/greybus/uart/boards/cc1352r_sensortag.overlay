@@ -82,6 +82,14 @@
 			id = <4>;
 			greybus-string = "opt3001";
 		};
+	
+	/*gbstring5: gbstring5 {
+			label = "GBSTRING_5";
+			status = "okay";
+			compatible = "zephyr,greybus-string";
+			id = <5>;
+			greybus-string = "sampleproperty";
+		};*/
 
 	gbinterface0 {
 		label = "GBINTERFACE_0";
@@ -193,6 +201,10 @@
 		driver-string-id = <&gbstring3>;
 		protocol = <3>;
 		addr = <0x76>;
+		/*prop-link = <4>;
+		gpio-link = <3>;
+		reg-link = <2>;
+		clock-link = <1>;*/
 	};
 
 	gbdevice1 {
@@ -204,6 +216,16 @@
 		protocol = <3>;
 		addr = <0x44>;
 	};
+
+	/*gbproperty1 {
+		label = "GBPROPERTY_1";
+		status = "okay";
+		compatible = "zephyr,greybus-property";
+		id = <1>;
+		name-string-id = <&gbstring5>;
+		type = <3>;
+		value = <1 2 3 4>;
+	};*/
 
 	gbmikrobus0 {
 		label = "GBMIKROBUS_0";

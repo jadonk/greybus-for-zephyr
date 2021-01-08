@@ -83,10 +83,45 @@ def get_device_descriptors(defines):
                 mode = int(defines[node + '_P_mode'])
             else:
                 mode = 0
+            if node + '_P_prop_link' in defines.keys():
+                proplink = int(defines[node + '_P_prop_link'])
+            else:
+                proplink = 0
+            if node + '_P_gpio_link' in defines.keys():
+                gpiolink = int(defines[node + '_P_gpio_link'])
+            else:
+                gpiolink = 0
+            if node + '_P_reg_link' in defines.keys():
+                reglink = int(defines[node + '_P_reg_link'])
+            else:
+                reglink = 0
+            if node + '_P_clock_link' in defines.keys():
+                clocklink = int(defines[node + '_P_clock_link'])
+            else:
+                clocklink = 0
             props = [dsi, protocol, addr, irq, irq_type, \
-                     maxspeedhz, mode, 0, 0, 0, 0]
+                     maxspeedhz, mode, proplink, gpiolink, reglink, clocklink]
             device[id_] = DeviceDescriptor(id_, props, None)
     return device
+
+def get_property_descriptors(defines):
+    _property = {}
+    for key in defines:
+        val = defines[key]
+        if key.endswith('_P_compatible_IDX_0') and val == '"zephyr,greybus-property"':
+            node = key[:-len('_P_compatible_IDX_0')]
+            nsh = defines[node + '_P_name_string_id_IDX_0_PH']
+            nsi = int(defines[nsh + '_P_id'])
+            id_ = int(defines[node + '_P_id'])
+            _type = int(defines[node + '_P_type'])   
+            if node + '_P_value' in defines.keys():
+                value = re.sub(re.compile("/\*.*?\*/",re.DOTALL ) ,"" ,defines[node + '_P_value'])
+                value = value.replace('{','').replace('}','').strip()
+                value = list(map(int, value.split(',')))
+            else:
+                value = 0
+            _property[id_] = PropertyDescriptor(id_, nsi, _type, value, None)
+    return _property
 
 def get_bundle_descriptors(defines):
     bd = {}
@@ -135,6 +170,7 @@ def dt2mnfs(fn):
     string_descs = get_string_descriptors(defines, interface_desc)
     bundle_descs = get_bundle_descriptors(defines)
     device_descs = get_device_descriptors(defines)
+    property_descs = get_property_descriptors(defines)
     cport_descs = get_cport_descriptors(defines)
 
     m = Manifest()
@@ -150,7 +186,8 @@ def dt2mnfs(fn):
         m.add_cport_desc(cport_descs[d])
     for d in device_descs:
         m.add_device_desc(device_descs[d])
-
+    for d in property_descs:
+        m.add_property_desc(property_descs[d])
     return m
 
 

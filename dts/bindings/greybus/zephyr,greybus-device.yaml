@@ -29,10 +29,10 @@ properties:
     "mode":
       type: int
     "prop-link":
-      type: array
+      type: int
     "gpio-link":
-      type: array
+      type: int
     "clock-link":
-      type: array
+      type: int
     "reg-link":
-      type: array
+      type: int
