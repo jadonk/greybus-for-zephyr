@@ -67,6 +67,30 @@
 		greybus-string = "Greybus Service Sample Application";
 	};
 
+	gbstring3: gbstring3 {
+		label = "GBSTRING_3";
+		status = "okay";
+		compatible = "zephyr,greybus-string";
+		id = <3>;
+		greybus-string = "bme280";
+	};
+
+	gbstring4: gbstring4 {
+			label = "GBSTRING_4";
+			status = "okay";
+			compatible = "zephyr,greybus-string";
+			id = <4>;
+			greybus-string = "opt3001";
+		};
+	
+	gbstring5: gbstring5 {
+			label = "GBSTRING_5";
+			status = "okay";
+			compatible = "zephyr,greybus-string";
+			id = <5>;
+			greybus-string = "ams-iaq-core";
+		};
+
 	gbinterface0 {
 		label = "GBINTERFACE_0";
 		status = "okay";
@@ -121,16 +145,7 @@
 			id = <1>;
 			cport-protocol = <CPORT_PROTOCOL_GPIO>;
 		};
-	};
-	
-	gbbundle2 {
-		label = "GBBUNDLE_2";
-		status = "okay";
-		compatible = "zephyr,greybus-bundle";
-		greybus-bundle;
-		id = <2>;
-		bundle-class = <BUNDLE_CLASS_BRIDGED_PHY>;		
-				
+
 		gbi2c0 {
 			label = "GBI2C_0";
 			status = "okay";
@@ -140,16 +155,7 @@
 			id = <2>;
 			cport-protocol = <CPORT_PROTOCOL_I2C>;
 		};
-	};
-	
-	gbbundle3 {
-		label = "GBBUNDLE_3";
-		status = "okay";
-		compatible = "zephyr,greybus-bundle";
-		greybus-bundle;
-		id = <3>;
-		bundle-class = <BUNDLE_CLASS_BRIDGED_PHY>;		
-				
+
 		gbspi0 {
 			label = "GBSPI_0";
 			status = "okay";
@@ -185,5 +191,53 @@
 				device-name = "ADXL362";
 			};
 		};
+	};
+
+	gbdevice0 {
+		label = "GBDEVICE_0";
+		status = "okay";
+		compatible = "zephyr,greybus-device";
+		id = <1>;
+		driver-string-id = <&gbstring3>;
+		protocol = <3>;
+		addr = <0x76>;
+	};
+
+	gbdevice1 {
+		label = "GBDEVICE_1";
+		status = "okay";
+		compatible = "zephyr,greybus-device";
+		id = <2>;
+		driver-string-id = <&gbstring4>;
+		protocol = <3>;
+		addr = <0x44>;
+	};
+
+	gbdevice2 {
+		label = "GBDEVICE_2";
+		status = "okay";
+		compatible = "zephyr,greybus-device";
+		id = <3>;
+		driver-string-id = <&gbstring5>;
+		protocol = <3>;
+		addr = <0x5a>;
+	};
+
+	gbmikrobus0 {
+		label = "GBMIKROBUS_0";
+		status = "okay";
+		compatible = "zephyr,greybus-mikrobus";
+		pwmstate = <4>;
+		intstate = <1>;
+		rxstate = <7>;
+		txstate = <7>;
+		sclstate = <6>;
+		sdastate = <6>;
+		mosistate = <5>;
+		misostate = <5>;
+		sckstate = <5>;
+		csstate = <5>;
+		rststate = <2>;
+		anstate = <1>;
 	};
 };
