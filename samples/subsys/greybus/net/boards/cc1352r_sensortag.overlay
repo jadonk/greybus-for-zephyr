@@ -68,28 +68,12 @@
 	};
 
 	gbstring3: gbstring3 {
-		label = "GBSTRING_3";
-		status = "okay";
-		compatible = "zephyr,greybus-string";
-		id = <3>;
-		greybus-string = "bme280";
-	};
-
-	gbstring4: gbstring4 {
-			label = "GBSTRING_4";
+			label = "GBSTRING_3";
 			status = "okay";
 			compatible = "zephyr,greybus-string";
-			id = <4>;
+			id = <3>;
 			greybus-string = "opt3001";
-		};
-	
-	gbstring5: gbstring5 {
-			label = "GBSTRING_5";
-			status = "okay";
-			compatible = "zephyr,greybus-string";
-			id = <5>;
-			greybus-string = "ams-iaq-core";
-		};
+	};
 
 	gbinterface0 {
 		label = "GBINTERFACE_0";
@@ -200,27 +184,7 @@
 		id = <1>;
 		driver-string-id = <&gbstring3>;
 		protocol = <3>;
-		addr = <0x76>;
-	};
-
-	gbdevice1 {
-		label = "GBDEVICE_1";
-		status = "okay";
-		compatible = "zephyr,greybus-device";
-		id = <2>;
-		driver-string-id = <&gbstring4>;
-		protocol = <3>;
 		addr = <0x44>;
-	};
-
-	gbdevice2 {
-		label = "GBDEVICE_2";
-		status = "okay";
-		compatible = "zephyr,greybus-device";
-		id = <3>;
-		driver-string-id = <&gbstring5>;
-		protocol = <3>;
-		addr = <0x5a>;
 	};
 
 	gbmikrobus0 {

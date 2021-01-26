@@ -81,10 +81,23 @@ struct greybus {
     struct list_head cports;
     struct greybus_driver *drv;
     size_t max_bundle_id;
+    size_t max_property_id;
+    size_t max_device_id;
+    size_t max_string_id;
+    size_t max_patch_property_id;
+    size_t max_patch_device_id;
+    size_t max_patch_string_id;
 };
 
 static struct greybus g_greybus = {
     .cports = LIST_INIT(g_greybus.cports),
+    .max_bundle_id = 0,
+    .max_device_id = 0,
+    .max_string_id = 0,
+    .max_property_id = 0,
+    .max_patch_property_id = 0,
+    .max_patch_device_id = 0,
+    .max_patch_string_id = 0,
 };
 
 #ifdef CONFIG_GREYBUS_STATIC_MANIFEST
@@ -281,7 +294,7 @@ static int identify_descriptor(struct greybus_descriptor *desc, size_t size,
     case GREYBUS_TYPE_STRING:
         expected_size += sizeof(struct greybus_descriptor_string);
         expected_size += desc->string.length;
-
+        g_greybus.max_string_id = MAX(g_greybus.max_string_id, desc->string.id);
         /* String descriptors are padded to 4 byte boundaries */
         expected_size = ALIGN(expected_size);
         break;
@@ -312,10 +325,12 @@ static int identify_descriptor(struct greybus_descriptor *desc, size_t size,
     case GREYBUS_TYPE_PROPERTY:
 		expected_size += sizeof(struct greybus_descriptor_property);
 		expected_size += desc->property.length;
+        g_greybus.max_property_id = MAX(g_greybus.max_property_id, desc->property.id);
 		expected_size = ALIGN(expected_size);
 		break;
 	case GREYBUS_TYPE_DEVICE:
 		expected_size += sizeof(struct greybus_descriptor_device);
+        g_greybus.max_device_id = MAX(g_greybus.max_device_id, desc->device.id);
 		break;
 	case GREYBUS_TYPE_MIKROBUS:
 		expected_size += sizeof(struct greybus_descriptor_mikrobus);
@@ -325,7 +340,6 @@ static int identify_descriptor(struct greybus_descriptor *desc, size_t size,
         LOG_ERR("invalid descriptor type (%hhu)", desc_header->type);
         return -EINVAL;
     }
-
     if (desc_size < expected_size) {
         LOG_ERR("%d: descriptor too small (%zu < %zu)",
                  desc_header->type, desc_size, expected_size);
@@ -340,6 +354,86 @@ static int identify_descriptor(struct greybus_descriptor *desc, size_t size,
 
     return desc_size;
 }
+
+static int identify_patch_descriptor(struct greybus_descriptor *desc, size_t size)
+{
+    struct greybus_descriptor_header *desc_header = &desc->header;
+    size_t expected_size;
+    size_t desc_size;
+    int skip = 0;
+
+    if (size < sizeof(*desc_header)) {
+        LOG_ERR("manifest too small");
+        return -EINVAL;         /* Must at least have header */
+    }
+
+    desc_size = (int)sys_le16_to_cpu(desc_header->size);
+    if ((size_t) desc_size > size) {
+        LOG_ERR("descriptor too big");
+        return -EINVAL;
+    }
+
+    /* Descriptor needs to at least have a header */
+    expected_size = sizeof(*desc_header);
+    switch (desc_header->type) {
+    case GREYBUS_TYPE_STRING:
+        expected_size += sizeof(struct greybus_descriptor_string);
+        expected_size += desc->string.length;
+        desc->string.id += g_greybus.max_string_id;
+        g_greybus.max_patch_string_id = MAX(g_greybus.max_patch_string_id, desc->string.id);
+        expected_size = ALIGN(expected_size);
+        break;
+    case GREYBUS_TYPE_INTERFACE:
+        expected_size += sizeof(struct greybus_descriptor_interface);
+        skip = 1;
+        break;
+    case GREYBUS_TYPE_BUNDLE:
+        expected_size += sizeof(struct greybus_descriptor_bundle);
+        skip = 1;
+        break;
+    case GREYBUS_TYPE_CPORT:
+        expected_size += sizeof(struct greybus_descriptor_cport);
+        skip = 1;
+        break;
+    case GREYBUS_TYPE_PROPERTY:
+		expected_size += sizeof(struct greybus_descriptor_property);
+		expected_size += desc->property.length;
+        desc->property.id += g_greybus.max_property_id;
+        desc->property.propname_stringid += g_greybus.max_string_id;
+        g_greybus.max_patch_property_id = MAX(g_greybus.max_patch_property_id, desc->property.id);
+		expected_size = ALIGN(expected_size);
+		break;
+	case GREYBUS_TYPE_DEVICE:
+		expected_size += sizeof(struct greybus_descriptor_device);
+        desc->device.id += g_greybus.max_device_id;
+        desc->device.driver_stringid += g_greybus.max_string_id;
+        g_greybus.max_patch_device_id = MAX(g_greybus.max_patch_device_id, desc->device.id);
+    	break;
+	case GREYBUS_TYPE_MIKROBUS:
+		expected_size += sizeof(struct greybus_descriptor_mikrobus);
+		break;
+    case GREYBUS_TYPE_INVALID:
+    default:
+        LOG_ERR("invalid descriptor type (%hhu)", desc_header->type);
+        return -EINVAL;
+    }
+
+    if (desc_size < expected_size) {
+        LOG_ERR("%d: descriptor too small (%zu < %zu)",
+                 desc_header->type, desc_size, expected_size);
+        return -EINVAL;
+    }
+    /* Descriptor bigger than what we expect */
+    if (desc_size > expected_size) {
+        LOG_ERR("%d descriptor size mismatch (want %zu got %zu)",
+                 desc_header->type, expected_size, desc_size);
+    }
+    if(skip)
+        return -desc_size;
+
+    return desc_size;
+}
+
 
 static bool _manifest_parse(void *data, size_t size, int release)
 {
@@ -407,6 +501,74 @@ bool manifest_parse(void *data, size_t size)
 {
     return _manifest_parse(data, size, 0);
 }
+
+/*
+ * patch a buffer containing a interface manifest
+ * with a manifest fragment, manifest fragment will have
+ * mikrobus, device descriptor information. 
+ */
+bool manifest_patch(uint8_t **mnfb, void *data, size_t size)
+{
+    struct greybus_manifest *manifest = (struct greybus_manifest *)*mnfb;
+    struct greybus_manifest_header *header = &manifest->header;
+    struct greybus_manifest *manifest_fragment = (struct greybus_manifest *)data;
+    struct greybus_manifest_header *fragment_header = &manifest_fragment->header;
+    struct greybus_descriptor *desc;
+    uint16_t manifest_size = sys_le16_to_cpu(header->size);
+    uint16_t manifest_fragment_size;
+    
+    /* we have to have at _least_ the manifest header */
+    if (size <= sizeof(manifest_fragment->header)) {
+        LOG_ERR("short manifest fragment(%zu)", size);
+        return false;
+    }
+
+    /* Make sure the size is right */
+    manifest_fragment_size = sys_le16_to_cpu(fragment_header->size);
+    if (manifest_fragment_size != size) {
+        LOG_ERR("manifest fragment size mismatch %zu != %hu", size,
+                    manifest_fragment_size);
+        return false;
+    }
+
+    /* Validate major/minor number */
+    if (fragment_header->version_major > GREYBUS_VERSION_MAJOR) {
+        LOG_ERR("manifest fragment version too new (%hhu.%hhu > %hhu.%hhu)",
+                    fragment_header->version_major, fragment_header->version_minor,
+                    GREYBUS_VERSION_MAJOR, GREYBUS_VERSION_MINOR);
+        return false;
+    }
+   //LOG_HEXDUMP_ERR(manifest, manifest_size, "original manifest ");
+    g_greybus.max_patch_property_id = 0;
+    g_greybus.max_patch_device_id = 0;
+    g_greybus.max_patch_string_id = 0;
+    /* OK, find all the descriptors */
+    desc = (struct greybus_descriptor *)(fragment_header + 1);
+    size -= sizeof(*fragment_header);
+    while (size) {
+        int desc_size;
+        desc_size = identify_patch_descriptor(desc, size);
+        if (desc_size <= 0){
+            desc_size = -desc_size;
+            desc = (struct greybus_descriptor *)((char *)desc + desc_size);
+            size -= desc_size;
+            continue;
+        }
+        size -= desc_size;
+        *mnfb = realloc(*mnfb, manifest_size + desc_size);
+        memcpy((char *)*mnfb + manifest_size, desc, desc_size);
+        manifest = (struct greybus_manifest *)*mnfb;
+        header = &manifest->header;
+        header->size += desc_size;
+        manifest_size += desc_size;
+        desc = (struct greybus_descriptor *)((char *)desc + desc_size);
+    }
+    g_greybus.max_property_id += g_greybus.max_patch_property_id;
+    g_greybus.max_device_id += g_greybus.max_patch_device_id;
+    g_greybus.max_string_id += g_greybus.max_patch_string_id;
+    return true;
+}
+
 
 bool manifest_release(void *data, size_t size)
 {

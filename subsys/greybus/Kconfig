@@ -27,6 +27,30 @@ config GREYBUS_MANIFEST_BUILTIN
 	  data.
 endchoice
 
+config GREYBUS_CLICK_MANIFEST_BUILTIN
+	bool "Use Compiled in Click Manifests"
+	depends on GREYBUS_MANIFEST_BUILTIN
+	help
+	  Choose click manifests generated during compile time
+
+config GREYBUS_MIKROBUS_CLICK1_NAME
+	string "mikroBUS port 1 Click Name"
+	default ""
+	help
+	  This is the name of the Click Board which is connected
+	  to the mikroBUS port 1 on the board the click manifest
+	  should already be present in the manifesto manifests
+	  directory.
+
+config GREYBUS_MIKROBUS_CLICK2_NAME
+	string "mikroBUS port 2 Click Name"
+	default ""
+	help
+	  This is the name of the Click Board which is connected
+	  to the mikroBUS port 2 on the board the click manifest
+	  should already be present in the manifesto manifests
+	  directory.
+
 config GREYBUS_ENABLE_TLS
 	bool "Use Transport Layer Security (TLS)"
 	depends on TLS_CREDENTIALS
