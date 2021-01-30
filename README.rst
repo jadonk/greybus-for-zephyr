@@ -13,7 +13,7 @@ Overview
 ########
 This repository contains a `Greybus <https://lwn.net/Articles/715955/>`_
 `module <https://docs.zephyrproject.org/latest/guides/modules.html>`_ for the
-`Zephyr Real-Time Operating System <https://zephyrproject.org/>`_.
+`Zephyr Real-Time Operating System <https://zephyrproject.org/>`_ and the assosciated changes for instantiating mikroBUS ports over Greybus.
 
 Building and Running
 ####################
@@ -124,6 +124,44 @@ using Greybus. Currently, this module supports the protocols below.
 * `GPIO <doc/gpio.rst>`_
 * `I2C <doc/i2c.rst>`_
 * `SPI <doc/spi.rst>`_
+
+Trying out different add-on boards/devices over mikroBUS
+####################
+
+Currently the add-on board manifests are selected at compile time(temporarily until add-on board ID driver is implemented in Zephyr) and the add-on board can be choosen by updating the Kconfig options `here <https://github.com/vaishnav98/greybus-for-zephyr/blob/9f937760960a8303179bff6b9c6fefc9d9622d38/samples/subsys/greybus/net/boards/cc1352r1_launchxl.conf#L14>`_
+
+.. code-block:: bash
+
+    CONFIG_GREYBUS_CLICK_MANIFEST_BUILTIN=y
+    CONFIG_GREYBUS_MIKROBUS_CLICK1_NAME="WEATHER-CLICK"
+    CONFIG_GREYBUS_MIKROBUS_CLICK2_NAME="AIR-QUALITY-2-CLICK"
+
+The names of the add-on boards should be specified same as that present in the `manifesto/manifests <https://github.com/vaishnav98/manifesto/tree/6b68006f6c62f3d680b947d4a91068be9ff22218/manifests>`_ repository.
+
+Describing On-board devices through Zephyr DT
+####################
+
+For MCU Clients like the SensorTag,the on-board fixed devices(like the OPT3001) can be described over the `Zephyr Device Tree Overlay <https://github.com/vaishnav98/greybus-for-zephyr/blob/9f937760960a8303179bff6b9c6fefc9d9622d38/samples/subsys/greybus/net/boards/cc1352r_sensortag.overlay#L180>`_ in this manner :
+
+.. code-block:: bash
+
+    gbstring3 {
+                label = "GBSTRING_3";
+                status = "okay";
+                compatible = "zephyr,greybus-string";
+                id = <3>;
+                greybus-string = "opt3001";
+        };
+
+    gbdevice0 {
+            label = "GBDEVICE_0";
+            status = "okay";
+            compatible = "zephyr,greybus-device";
+            id = <1>;
+            driver-string-id = <&gbstring3>;
+            protocol = <3>;
+            addr = <0x44>;
+        };
 
 Contribute Back
 ***************
