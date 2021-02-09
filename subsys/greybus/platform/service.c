@@ -85,7 +85,7 @@ static int greybus_service_init(const struct device *bus)
         return -ENOMEM;
 	memcpy(combined_mnfb, mnfb, mnfb_size);
 
-#ifdef CONFIG_GREYBUS_CLICK_MANIFEST_BUILTIN
+#if defined(CONFIG_GREYBUS_CLICK_MANIFEST_BUILTIN) || defined(CONFIG_GREYBUS_CLICK_MANIFEST_CLICKID)
 	uint8_t *mnfb_fragment;
 	size_t mnfb_fragment_size;
 
@@ -101,7 +101,7 @@ static int greybus_service_init(const struct device *bus)
 		r = -EINVAL;
 		goto out;
 	}
-
+#ifdef CONFIG_GREYBUS_CLICK_MANIFEST_BUILTIN
 	r = manifest_get_fragment(&mnfb_fragment, &mnfb_fragment_size, 2);
 	if (r < 0) {
 		LOG_ERR("failed to get mnfb fragment");
@@ -115,7 +115,7 @@ static int greybus_service_init(const struct device *bus)
 		goto out;
 	}
 #endif
-
+#endif
 	extern size_t manifest_get_num_cports(void);
 	num_cports = manifest_get_num_cports();
     if (num_cports == 0) {

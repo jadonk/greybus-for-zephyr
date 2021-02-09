@@ -33,6 +33,12 @@ config GREYBUS_CLICK_MANIFEST_BUILTIN
 	help
 	  Choose click manifests generated during compile time
 
+config GREYBUS_CLICK_MANIFEST_CLICKID
+	bool "Use Click Manifests from Click ID Adapter"
+	depends on GREYBUS_MANIFEST_BUILTIN
+	help
+	  Choose click manifests read from Click ID Adapter board
+
 config GREYBUS_MIKROBUS_CLICK1_NAME
 	string "mikroBUS port 1 Click Name"
 	default ""
@@ -244,6 +250,13 @@ config GREYBUS_VIBRATOR
 	bool "Greybus Vibrator"
 	help
 	  Select this for Greybus Vibrator support.
+
+config GREYBUS_MIKROBUS_INIT_PRIORITY
+	int "default Greybus mikroBUS Init Priority"
+	default 80
+	range 0 99
+	help
+	  Greybus mikrobus init priority to ensure device initialization order.
 
 config GREYBUS_SERVICE_INIT_PRIORITY
 	int "default Greybus Service Init Priority"

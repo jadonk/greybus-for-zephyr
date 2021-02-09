@@ -1,0 +1,23 @@
+
+# Copyright (c) 2021  BeagleBoard.org Foundation
+# SPDX-License-Identifier: Apache-2.0
+
+description: mikroBUS Click ID support
+
+compatible: "zephyr,greybus-mikrobusid"
+
+include: [base.yaml]
+
+properties:
+    cs-gpios:
+      type: phandle-array
+      required: true
+      description: mikrobus CS GPIO
+    sclk-gpios:
+      type: phandle-array
+      required: true
+      description: mikrobus SCLK GPIO
+    mosi-gpios:
+      type: phandle-array
+      required: true
+      description: mikrobus MOSI GPIO

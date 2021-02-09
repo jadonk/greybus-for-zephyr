@@ -12,6 +12,8 @@ zephyr_library_sources(
 	greybus-manifest.c
 
 	platform/manifest.c
+ 	platform/mikrobus.c
+	platform/w1-gpio.c
 	platform/platform.c
 
 	platform/service.c
