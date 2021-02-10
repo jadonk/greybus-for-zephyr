@@ -19,18 +19,21 @@
 	};
 
 	/*
-	 * for some reason plugging in the click ID board on port 1
+	 * CONFIG_CC13X2_CC26X2_BOOTLOADER_BACKDOOR_ENABLE = y and
+	 * plugging in the click ID board on port 1
 	 * results in the launchpad not booting.
 	 */
-	/*mikrobus0: mikrobus0 {
+	mikrobus0: mikrobus0 {
+		id = <0>;
 		compatible = "zephyr,greybus-mikrobusid";
 		label = "MIKROBUS_0";
 		cs-gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;
 		sclk-gpios = <&gpio0 10 GPIO_ACTIVE_HIGH>;
 		mosi-gpios = <&gpio0 9 GPIO_ACTIVE_HIGH>;
-	};*/
+	};
 
 	mikrobus1: mikrobus1 {
+		id = <1>;
 		compatible = "zephyr,greybus-mikrobusid";
 		label = "MIKROBUS_1";
 		cs-gpios = <&gpio0 14 GPIO_ACTIVE_HIGH>;

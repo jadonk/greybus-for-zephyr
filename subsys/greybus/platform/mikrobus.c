@@ -23,8 +23,7 @@
 
 LOG_MODULE_REGISTER(greybus_platform_mikrobusid, CONFIG_GREYBUS_LOG_LEVEL);
 
-unsigned char *greybus_manifest_click1_fragment_clickid = NULL;
-unsigned char *greybus_manifest_click2_fragment_clickid = NULL;
+unsigned char *greybus_manifest_click_fragment_clickid[2];
 
 #define US_TO_SYS_CLOCK_HW_CYCLES(us) \
 	((uint64_t)sys_clock_hw_cycles_per_sec() * (us) / USEC_PER_SEC + 1)
@@ -32,6 +31,7 @@ unsigned char *greybus_manifest_click2_fragment_clickid = NULL;
 #define MIKROBUS_ENTER_ID_MODE_DELAY US_TO_SYS_CLOCK_HW_CYCLES(1000)
 
 struct mikrobusid_config {
+	unsigned int id;
 	const char *cs_gpio_name;
 	const char *sclk_gpio_name;
 	const char *mosi_gpio_name;
@@ -93,6 +93,7 @@ static int mikrobusid_init(const struct device *dev) {
 	int found;
 	size_t count;
 	int iter;
+	unsigned int mikrobusid = config->id;
 
 	context->cs_gpio = device_get_binding(config->cs_gpio_name);
 	if (!context->cs_gpio) {
@@ -160,7 +161,7 @@ static int mikrobusid_init(const struct device *dev) {
 
 	k_sleep(K_MSEC(100));
 
-	greybus_manifest_click1_fragment_clickid = malloc(sizeof(struct w1_gpio_master));
+	greybus_manifest_click_fragment_clickid[mikrobusid] = malloc(sizeof(struct w1_gpio_master));
 
 	found = w1_gpio_io->reset_bus(w1_io_context);
 	if(found) {
@@ -176,10 +177,10 @@ static int mikrobusid_init(const struct device *dev) {
 	w1_gpio_io->write_8(w1_io_context, count & 0xFF);
 	k_sleep(K_MSEC(1));
 	for(iter = 0; iter < count; iter++){
-		greybus_manifest_click1_fragment_clickid[iter] = w1_gpio_io->read_8(w1_io_context);
+		greybus_manifest_click_fragment_clickid[mikrobusid][iter] = w1_gpio_io->read_8(w1_io_context);
 	}
-	LOG_HEXDUMP_DBG(greybus_manifest_click1_fragment_clickid, count, "manifest header:");
-	manifest_header = (struct greybus_manifest_header *)greybus_manifest_click1_fragment_clickid;
+	LOG_HEXDUMP_DBG(greybus_manifest_click_fragment_clickid[mikrobusid], count, "manifest header:");
+	manifest_header = (struct greybus_manifest_header *)greybus_manifest_click_fragment_clickid[mikrobusid];
 	if(manifest_header->version_major > GREYBUS_VERSION_MAJOR) {
 			LOG_ERR("manifest fragment version too new (%hhu.%hhu > %hhu.%hhu)",
 						manifest_header->version_major, manifest_header->version_minor,
@@ -193,33 +194,27 @@ static int mikrobusid_init(const struct device *dev) {
 		return -ENODEV;
 	}
 	count = sys_le16_to_cpu(manifest_header->size);
-	greybus_manifest_click1_fragment_clickid = realloc(greybus_manifest_click1_fragment_clickid, count);
+	greybus_manifest_click_fragment_clickid[mikrobusid] = realloc(greybus_manifest_click_fragment_clickid[mikrobusid], count);
 	w1_gpio_io->write_8(w1_io_context, 0xCC); //skip rom
 	w1_gpio_io->write_8(w1_io_context, 0xF0); //mikrobus read eeprom
 	w1_gpio_io->write_8(w1_io_context, count >> 8);
 	w1_gpio_io->write_8(w1_io_context, count & 0xFF);
 	k_sleep(K_MSEC(1));
 	for(iter = 0; iter < count; iter++){
-		greybus_manifest_click1_fragment_clickid[iter] = w1_gpio_io->read_8(w1_io_context);
+		greybus_manifest_click_fragment_clickid[mikrobusid][iter] = w1_gpio_io->read_8(w1_io_context);
 	}
-	LOG_HEXDUMP_DBG(greybus_manifest_click1_fragment_clickid, count, "manifest fragment:");
+	LOG_HEXDUMP_DBG(greybus_manifest_click_fragment_clickid[mikrobusid], count, "manifest fragment:");
     return 0;
 }
 
 int manifest_get_fragment_clickid(uint8_t **mnfb, size_t *mnfb_size, uint8_t id) {
 	struct greybus_manifest_header *manifest_header;
-	int r = -ENOENT;
+	
+	manifest_header = (struct greybus_manifest_header *)greybus_manifest_click_fragment_clickid[id];
+	*mnfb = (uint8_t *)greybus_manifest_click_fragment_clickid[id];
+	*mnfb_size = sys_le16_to_cpu(manifest_header->size);
 
-	if(id == 1){
-		manifest_header = (struct greybus_manifest_header *)greybus_manifest_click1_fragment_clickid;
-		*mnfb = (uint8_t *)greybus_manifest_click1_fragment_clickid;
-		*mnfb_size = sys_le16_to_cpu(manifest_header->size);
-	}
-	else 
-		return r;
-	r = 0;
-
-	return r;
+	return 0;
 }
 
 
@@ -229,6 +224,7 @@ static struct mikrobusid_context mikrobusid_dev_data_##_num;		\
 									\
         static const struct mikrobusid_config 						\
 			mikrobusid_config_##_num = {      						\
+					.id  	= DT_INST_PROP(_num, id),		\
 					.cs_gpio_name	= DT_INST_GPIO_LABEL(_num, cs_gpios),	\
 					.sclk_gpio_name	= DT_INST_GPIO_LABEL(_num, sclk_gpios),	\
 					.mosi_gpio_name	= DT_INST_GPIO_LABEL(_num, mosi_gpios),	\

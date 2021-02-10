@@ -9,6 +9,10 @@ compatible: "zephyr,greybus-mikrobusid"
 include: [base.yaml]
 
 properties:
+    "id":
+      type: int
+      required: true
+      description: mikroBUS ID
     cs-gpios:
       type: phandle-array
       required: true

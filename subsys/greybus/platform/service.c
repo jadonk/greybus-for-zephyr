@@ -89,9 +89,21 @@ static int greybus_service_init(const struct device *bus)
 	uint8_t *mnfb_fragment;
 	size_t mnfb_fragment_size;
 
+	r = manifest_get_fragment(&mnfb_fragment, &mnfb_fragment_size, 0);
+	if (r < 0) {
+		LOG_ERR("failed to get mnfb fragment 0");
+		goto out;
+	}
+
+	r = manifest_patch(&combined_mnfb, mnfb_fragment, mnfb_fragment_size);
+	if (r != true) {
+		LOG_ERR("failed to patch mnfb");
+		r = -EINVAL;
+		goto out;
+	}
 	r = manifest_get_fragment(&mnfb_fragment, &mnfb_fragment_size, 1);
 	if (r < 0) {
-		LOG_ERR("failed to get mnfb fragment");
+		LOG_ERR("failed to get mnfb fragment 1");
 		goto out;
 	}
 
@@ -101,20 +113,6 @@ static int greybus_service_init(const struct device *bus)
 		r = -EINVAL;
 		goto out;
 	}
-#ifdef CONFIG_GREYBUS_CLICK_MANIFEST_BUILTIN
-	r = manifest_get_fragment(&mnfb_fragment, &mnfb_fragment_size, 2);
-	if (r < 0) {
-		LOG_ERR("failed to get mnfb fragment");
-		goto out;
-	}
-
-	r = manifest_patch(&combined_mnfb, mnfb_fragment, mnfb_fragment_size);
-	if (r != true) {
-		LOG_ERR("failed to patch mnfb");
-		r = -EINVAL;
-		goto out;
-	}
-#endif
 #endif
 	extern size_t manifest_get_num_cports(void);
 	num_cports = manifest_get_num_cports();
