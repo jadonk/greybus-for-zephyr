@@ -93,29 +93,36 @@ static inline uint8_t w1_touch_bit(struct w1_io_context *io_context, int bit)
 }
 
 static inline void w1_write_8(struct w1_io_context *io_context, uint8_t byte) {
+    unsigned int key;
     int i;
 
+    key = irq_lock();
     for (i = 0; i < 8; i++) 
         w1_write_bit(io_context, (byte >> i) & 0x1);
-    
+    irq_unlock(key);    
 }
 
 static inline uint8_t w1_read_8(struct w1_io_context *io_context) {
     int i;
 	uint8_t res = 0;
+    unsigned int key;
 
+    key = irq_lock();
     for (i = 0; i < 8; i++) {
         res >>= 1;
         if (w1_read_bit(io_context)) {
 			res |= 0x80;
 		}
     }
+    irq_unlock(key);
     return res;
 }
 
 static inline int w1_reset_bus(struct w1_io_context *io_context) {
     int result = 0;
+    unsigned int key;
 
+    key = irq_lock();
     gpio_config(io_context->w1_gpio, io_context->w1_pin,
 			  GPIO_PULL_UP | GPIO_OUTPUT);
     gpio_pin_set(io_context->w1_gpio, io_context->w1_pin, 0);
@@ -125,6 +132,7 @@ static inline int w1_reset_bus(struct w1_io_context *io_context) {
     gpio_config(io_context->w1_gpio, io_context->w1_pin,
 			  GPIO_PULL_UP | GPIO_INPUT);
     result = gpio_pin_get(io_context->w1_gpio, io_context->w1_pin) ? 1 : 0;
+    irq_unlock(key);
     k_sleep(K_MSEC(1));
     return result;
 }
