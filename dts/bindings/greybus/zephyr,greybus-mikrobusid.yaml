@@ -17,11 +17,7 @@ properties:
       type: phandle-array
       required: true
       description: mikrobus CS GPIO
-    sclk-gpios:
+    rst-gpios:
       type: phandle-array
       required: true
-      description: mikrobus SCLK GPIO
-    mosi-gpios:
-      type: phandle-array
-      required: true
-      description: mikrobus MOSI GPIO
+      description: mikrobus RST GPIO
