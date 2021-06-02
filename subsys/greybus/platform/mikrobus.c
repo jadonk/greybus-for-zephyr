@@ -33,23 +33,18 @@ unsigned char *greybus_manifest_click_fragment_clickid[2];
 struct mikrobusid_config {
 	unsigned int id;
 	const char *cs_gpio_name;
-	const char *sclk_gpio_name;
-	const char *mosi_gpio_name;
+	const char *rst_gpio_name;
     gpio_pin_t cs_pin;
-	gpio_pin_t sclk_pin;
-	gpio_pin_t mosi_pin;
+	gpio_pin_t rst_pin;
 	gpio_dt_flags_t cs_flags;
-	gpio_dt_flags_t sclk_flags;
-	gpio_dt_flags_t mosi_flags;
+	gpio_dt_flags_t rst_flags;
 };
 
 struct mikrobusid_context {
 	const struct device *cs_gpio;
-	const struct device *sclk_gpio;
-	const struct device *mosi_gpio;
+	const struct device *rst_gpio;
 	gpio_pin_t cs_pin;	
-	gpio_pin_t sclk_pin;
-	gpio_pin_t mosi_pin;
+	gpio_pin_t rst_pin;
 };
 
 static void inline mikrobusid_delay(unsigned int cycles_to_wait)
@@ -66,17 +61,8 @@ static int mikrobusid_enter_id_mode(struct mikrobusid_context *context) {
 
 	if(!context)
 		return -EINVAL;
-
-	gpio_pin_set(context->mosi_gpio, context->mosi_pin, 0);
-	gpio_pin_set(context->sclk_gpio, context->sclk_pin, 1);
-	k_sleep(K_MSEC(100));
-	for( i = 0; i < 4; i++){
-		gpio_pin_set(context->mosi_gpio, context->mosi_pin, 1);
-		mikrobusid_delay(MIKROBUS_ENTER_ID_MODE_DELAY);
-		gpio_pin_set(context->mosi_gpio, context->mosi_pin, 0);
-		mikrobusid_delay(MIKROBUS_ENTER_ID_MODE_DELAY);
-	}
-
+	/* set RST LOW */
+	gpio_pin_set(context->rst_gpio, context->rst_pin, 0);
 	return 0;
 }
 
@@ -108,36 +94,21 @@ static int mikrobusid_init(const struct device *dev) {
 		return err;
 	}
 	
-	context->sclk_gpio = device_get_binding(config->sclk_gpio_name);
-	if (!context->sclk_gpio) {
-		LOG_ERR("failed to get SCLK GPIO device");
+	context->rst_gpio = device_get_binding(config->rst_gpio_name);
+	if (!context->rst_gpio) {
+		LOG_ERR("failed to get RST GPIO device");
 		return -EINVAL;
 	}
 
-	err = gpio_config(context->sclk_gpio, config->sclk_pin,
-			  config->sclk_flags | GPIO_OUTPUT_HIGH);
+	err = gpio_config(context->rst_gpio, config->rst_pin,
+			  config->rst_flags | GPIO_OUTPUT_LOW);
 	if (err) {
-		LOG_ERR("failed to configure SCLK GPIO pin (err %d)", err);
-		return err;
-
-	}
-	
-	context->mosi_gpio = device_get_binding(config->mosi_gpio_name);
-	if (!context->mosi_gpio) {
-		LOG_ERR("failed to get MOSI GPIO device");
-		return -EINVAL;
-	}
-
-	err = gpio_config(context->mosi_gpio, config->mosi_pin,
-				config->mosi_flags | GPIO_OUTPUT_HIGH);
-	if (err) {
-		LOG_ERR("failed to configure MOSI GPIO pin (err %d)", err);
+		LOG_ERR("failed to configure RST GPIO pin (err %d)", err);
 		return err;
 	}
 
 	context->cs_pin = config->cs_pin;
-	context->sclk_pin = config->sclk_pin;
-	context->mosi_pin = config->mosi_pin;
+	context->rst_pin = config->rst_pin;
 
 	err = mikrobusid_enter_id_mode(context);
 	if (err) {
@@ -173,8 +144,8 @@ static int mikrobusid_init(const struct device *dev) {
 	count = sizeof(struct greybus_manifest_header);
 	w1_gpio_io->write_8(w1_io_context, 0xCC); //skip rom
 	w1_gpio_io->write_8(w1_io_context, 0xF0); //mikrobus read eeprom
-	w1_gpio_io->write_8(w1_io_context, count >> 8);
-	w1_gpio_io->write_8(w1_io_context, count & 0xFF);
+	w1_gpio_io->write_8(w1_io_context, 0);
+	w1_gpio_io->write_8(w1_io_context, 0);
 	k_sleep(K_MSEC(1));
 	for(iter = 0; iter < count; iter++){
 		greybus_manifest_click_fragment_clickid[mikrobusid][iter] = w1_gpio_io->read_8(w1_io_context);
@@ -197,8 +168,8 @@ static int mikrobusid_init(const struct device *dev) {
 	greybus_manifest_click_fragment_clickid[mikrobusid] = realloc(greybus_manifest_click_fragment_clickid[mikrobusid], count);
 	w1_gpio_io->write_8(w1_io_context, 0xCC); //skip rom
 	w1_gpio_io->write_8(w1_io_context, 0xF0); //mikrobus read eeprom
-	w1_gpio_io->write_8(w1_io_context, count >> 8);
-	w1_gpio_io->write_8(w1_io_context, count & 0xFF);
+	w1_gpio_io->write_8(w1_io_context, 0);
+	w1_gpio_io->write_8(w1_io_context, 0);
 	k_sleep(K_MSEC(1));
 	for(iter = 0; iter < count; iter++){
 		greybus_manifest_click_fragment_clickid[mikrobusid][iter] = w1_gpio_io->read_8(w1_io_context);
@@ -226,14 +197,11 @@ static struct mikrobusid_context mikrobusid_dev_data_##_num;		\
 			mikrobusid_config_##_num = {      						\
 					.id  	= DT_INST_PROP(_num, id),		\
 					.cs_gpio_name	= DT_INST_GPIO_LABEL(_num, cs_gpios),	\
-					.sclk_gpio_name	= DT_INST_GPIO_LABEL(_num, sclk_gpios),	\
-					.mosi_gpio_name	= DT_INST_GPIO_LABEL(_num, mosi_gpios),	\
+					.rst_gpio_name	= DT_INST_GPIO_LABEL(_num, rst_gpios),	\
 					.cs_pin		= DT_INST_GPIO_PIN(_num, cs_gpios),	\
-					.sclk_pin	= DT_INST_GPIO_PIN(_num, sclk_gpios),	\
-					.mosi_pin	= DT_INST_GPIO_PIN(_num, mosi_gpios),	\
+					.rst_pin	= DT_INST_GPIO_PIN(_num, rst_gpios),	\
 					.cs_flags	= DT_INST_GPIO_FLAGS(_num, cs_gpios),	\
-					.sclk_flags	= DT_INST_GPIO_FLAGS(_num, sclk_gpios),	\
-					.mosi_flags	= DT_INST_GPIO_FLAGS(_num, mosi_gpios),	\
+					.rst_flags	= DT_INST_GPIO_FLAGS(_num, rst_gpios),	\
         };                                                              \
                                                                         \
         DEVICE_DT_INST_DEFINE(_num,										\
