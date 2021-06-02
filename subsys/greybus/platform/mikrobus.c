@@ -21,7 +21,7 @@
 
 #include "../greybus-manifest.h"
 
-LOG_MODULE_REGISTER(greybus_platform_mikrobusid, 4);
+LOG_MODULE_REGISTER(greybus_platform_mikrobusid, CONFIG_GREYBUS_LOG_LEVEL);
 
 unsigned char *greybus_manifest_click_fragment_clickid[2];
 
