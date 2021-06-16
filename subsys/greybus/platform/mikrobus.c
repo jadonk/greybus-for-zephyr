@@ -21,6 +21,18 @@
 
 #include "../greybus-manifest.h"
 
+#define W1_SKIP_ROM_CMD 0xCC
+#define MIKROBUS_ID_EEPROM_WRITE_SCRATCHPAD_CMD 0x0F
+#define MIKROBUS_ID_EEPROM_READ_SCRATCHPAD_CMD 0xAA
+#define MIKROBUS_ID_EEPROM_COPY_SCRATCHPAD_CMD 0x55
+#define MIKROBUS_ID_EEPROM_READ_MEMORY_CMD 0xF0
+#define MIKROBUS_ID_EEPROM_SCRATCHPAD_SIZE 32
+#define MIKROBUS_ID_EEPROM_BLOCK_PROT_CONTROL_SIZE 10
+#define MIKROBUS_ID_EEPROM_PROTECTION_CTRL_ADDR 0x0A00
+#define MIKROBUS_ID_USER_EEPROM_ADDR 0x0A0A
+#define MIKROBUS_ID_USER_EEPROM_SIZE 18
+#define MIKROBUS_FIXED_MANIFEST_START_ADDR 0x0000
+
 LOG_MODULE_REGISTER(greybus_platform_mikrobusid, CONFIG_GREYBUS_LOG_LEVEL);
 
 unsigned char *greybus_manifest_click_fragment_clickid[2];
@@ -56,13 +68,45 @@ static void inline mikrobusid_delay(unsigned int cycles_to_wait)
 	}
 }
 
-static int mikrobusid_enter_id_mode(struct mikrobusid_context *context) {
-	int i;
-
+static int mikrobusid_enter_id_mode(struct mikrobusid_context *context) 
+{
 	if(!context)
 		return -EINVAL;
 	/* set RST LOW */
 	gpio_pin_set(context->rst_gpio, context->rst_pin, 0);
+	return 0;
+}
+
+static int mikrobusid_exit_id_mode(struct mikrobusid_context *context) 
+{
+	if(!context)
+		return -EINVAL;
+	/* set RST HIGH */
+	gpio_pin_set(context->rst_gpio, context->rst_pin, 1);
+	return 0;
+}
+
+/*
+ * performs read block data from memory
+ */
+static int mikrobus_read_block(uint8_t *rdata, unsigned int count, uint16_t address, struct w1_io_context *w1_io_context, struct w1_io *w1_gpio_io)
+{
+	int iter, found;
+
+	found = w1_gpio_io->reset_bus(w1_io_context);
+	if (found)
+	{
+		LOG_ERR("w1 device not found");
+		return -ENODEV;
+	}
+	w1_gpio_io->write_8(w1_io_context, W1_SKIP_ROM_CMD);
+	w1_gpio_io->write_8(w1_io_context, MIKROBUS_ID_EEPROM_READ_MEMORY_CMD);
+	w1_gpio_io->write_8(w1_io_context, address & 0xFF);
+	w1_gpio_io->write_8(w1_io_context, (address >> 8) & 0xFF);
+	for (iter = 0; iter < count; iter++)
+	{
+		rdata[iter] = w1_gpio_io->read_8(w1_io_context);
+	}
 	return 0;
 }
 
@@ -77,9 +121,10 @@ static int mikrobusid_init(const struct device *dev) {
 	struct w1_io *w1_gpio_io;
 	int err;
 	int found;
-	size_t count;
-	int iter;
 	unsigned int mikrobusid = config->id;
+	uint16_t mikrobus_manifest_start_addr;
+	unsigned int manifest_size = 0;
+	uint8_t mikrobus_manifest_start_addr_byte[MIKROBUS_ID_USER_EEPROM_SIZE];
 
 	context->cs_gpio = device_get_binding(config->cs_gpio_name);
 	if (!context->cs_gpio) {
@@ -123,16 +168,13 @@ static int mikrobusid_init(const struct device *dev) {
 	if(!w1_master->io_context)
 		return -ENOMEM;
 	w1_io_context = w1_master->io_context;
-
 	w1_io_context->w1_gpio = context->cs_gpio;
 	w1_io_context->w1_pin = context->cs_pin;
-
 	w1_gpio_init(w1_master);
 	w1_gpio_io = w1_master->w1_gpio_io;
-
 	k_sleep(K_MSEC(100));
 
-	greybus_manifest_click_fragment_clickid[mikrobusid] = malloc(sizeof(struct w1_gpio_master));
+	greybus_manifest_click_fragment_clickid[mikrobusid] = malloc(sizeof(struct greybus_manifest_header));
 
 	found = w1_gpio_io->reset_bus(w1_io_context);
 	if(found) {
@@ -140,17 +182,16 @@ static int mikrobusid_init(const struct device *dev) {
 		return -ENODEV;
 	}
 	LOG_INF("probed mikrobus Click ID adapter");
-	// read greybus manifest header
-	count = sizeof(struct greybus_manifest_header);
-	w1_gpio_io->write_8(w1_io_context, 0xCC); //skip rom
-	w1_gpio_io->write_8(w1_io_context, 0xF0); //mikrobus read eeprom
-	w1_gpio_io->write_8(w1_io_context, 0);
-	w1_gpio_io->write_8(w1_io_context, 0);
-	k_sleep(K_MSEC(1));
-	for(iter = 0; iter < count; iter++){
-		greybus_manifest_click_fragment_clickid[mikrobusid][iter] = w1_gpio_io->read_8(w1_io_context);
+
+    mikrobus_read_block(mikrobus_manifest_start_addr_byte, MIKROBUS_ID_USER_EEPROM_SIZE, MIKROBUS_ID_USER_EEPROM_ADDR, w1_io_context, w1_gpio_io);
+	mikrobus_manifest_start_addr = (mikrobus_manifest_start_addr_byte[0] << 8);
+	if(mikrobus_manifest_start_addr_byte[0] > MIKROBUS_ID_EEPROM_BLOCK_PROT_CONTROL_SIZE){
+		LOG_ERR("variable manifest offset invalid [%x], reading fixed manifest", mikrobus_manifest_start_addr_byte[0]);
+		mikrobus_manifest_start_addr = MIKROBUS_FIXED_MANIFEST_START_ADDR;
 	}
-	LOG_HEXDUMP_DBG(greybus_manifest_click_fragment_clickid[mikrobusid], count, "manifest header:");
+	LOG_DBG("reading mikrobus manifest from 0x%x", mikrobus_manifest_start_addr);
+    mikrobus_read_block(greybus_manifest_click_fragment_clickid[mikrobusid], sizeof(struct greybus_manifest_header), mikrobus_manifest_start_addr, w1_io_context, w1_gpio_io);
+	LOG_HEXDUMP_DBG(greybus_manifest_click_fragment_clickid[mikrobusid], sizeof(struct greybus_manifest_header), "manifest header:");
 	manifest_header = (struct greybus_manifest_header *)greybus_manifest_click_fragment_clickid[mikrobusid];
 	if(manifest_header->version_major > GREYBUS_VERSION_MAJOR) {
 			LOG_ERR("manifest fragment version too new (%hhu.%hhu > %hhu.%hhu)",
@@ -158,23 +199,17 @@ static int mikrobusid_init(const struct device *dev) {
 						GREYBUS_VERSION_MAJOR, GREYBUS_VERSION_MINOR);
 			return false;
 	}
-	LOG_INF("manifest read from click ID adapter, size %d bytes", sys_le16_to_cpu(manifest_header->size));
-	found = w1_gpio_io->reset_bus(w1_io_context);
-	if(found) {
-		LOG_ERR("w1 device not found");
-		return -ENODEV;
+	manifest_size = sys_le16_to_cpu(manifest_header->size);
+	greybus_manifest_click_fragment_clickid[mikrobusid] = realloc(greybus_manifest_click_fragment_clickid[mikrobusid], manifest_size);
+	LOG_INF("manifest read from click ID adapter, size %d bytes", manifest_size);
+	mikrobus_read_block(greybus_manifest_click_fragment_clickid[mikrobusid], manifest_size, mikrobus_manifest_start_addr, w1_io_context, w1_gpio_io);
+	LOG_HEXDUMP_DBG(greybus_manifest_click_fragment_clickid[mikrobusid], manifest_size, "manifest fragment:");
+
+	err = mikrobusid_exit_id_mode(context);
+	if (err) {
+		LOG_ERR("failed to exit mikrobus ID mode (err %d)", err);
+		return err;
 	}
-	count = sys_le16_to_cpu(manifest_header->size);
-	greybus_manifest_click_fragment_clickid[mikrobusid] = realloc(greybus_manifest_click_fragment_clickid[mikrobusid], count);
-	w1_gpio_io->write_8(w1_io_context, 0xCC); //skip rom
-	w1_gpio_io->write_8(w1_io_context, 0xF0); //mikrobus read eeprom
-	w1_gpio_io->write_8(w1_io_context, 0);
-	w1_gpio_io->write_8(w1_io_context, 0);
-	k_sleep(K_MSEC(1));
-	for(iter = 0; iter < count; iter++){
-		greybus_manifest_click_fragment_clickid[mikrobusid][iter] = w1_gpio_io->read_8(w1_io_context);
-	}
-	LOG_HEXDUMP_DBG(greybus_manifest_click_fragment_clickid[mikrobusid], count, "manifest fragment:");
     return 0;
 }
 
@@ -184,7 +219,6 @@ int manifest_get_fragment_clickid(uint8_t **mnfb, size_t *mnfb_size, uint8_t id)
 	manifest_header = (struct greybus_manifest_header *)greybus_manifest_click_fragment_clickid[id];
 	*mnfb = (uint8_t *)greybus_manifest_click_fragment_clickid[id];
 	*mnfb_size = sys_le16_to_cpu(manifest_header->size);
-
 	return 0;
 }
 
