@@ -186,7 +186,7 @@ static uint8_t gb_gpio_get_direction(struct gb_operation *operation)
 	if (!response)
 		return GB_OP_NO_MEMORY;
 
-	bool dir = gpio_pin_get_direction(dev, request->which);
+	bool dir = gpio_pin_is_input(dev, request->which);
 	/* In Greybus 0 := output, 1 := input. Zephyr is the opposite */
 	response->direction = !dir;
 	return GB_OP_SUCCESS;
