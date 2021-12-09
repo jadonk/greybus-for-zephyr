@@ -132,7 +132,7 @@ static int mikrobusid_init(const struct device *dev) {
 		return -EINVAL;
 	}
 
-	err = gpio_config(context->cs_gpio, config->cs_pin,
+	err = gpio_pin_configure(context->cs_gpio, config->cs_pin,
 			  config->cs_flags | GPIO_INPUT);
 	if (err) {
 		LOG_ERR("failed to configure CS GPIO pin (err %d)", err);
@@ -145,7 +145,7 @@ static int mikrobusid_init(const struct device *dev) {
 		return -EINVAL;
 	}
 
-	err = gpio_config(context->rst_gpio, config->rst_pin,
+	err = gpio_pin_configure(context->rst_gpio, config->rst_pin,
 			  config->rst_flags | GPIO_OUTPUT_LOW);
 	if (err) {
 		LOG_ERR("failed to configure RST GPIO pin (err %d)", err);

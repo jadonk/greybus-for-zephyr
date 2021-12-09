@@ -461,8 +461,8 @@ void test_greybus_gpio_direction_output(void)
 {
 	int r;
 
-    r = gpio_config(gpio_dev, GPIO_PIN_OUT, GPIO_INPUT);
-    zassert_equal(0, r, "gpio_config() failed: %d", r);
+    r = gpio_pin_configure(gpio_dev, GPIO_PIN_OUT, GPIO_INPUT);
+    zassert_equal(0, r, "gpio_pin_configure() failed: %d", r);
 
     r = gpio_pin_get(gpio_dev, GPIO_PIN_IN);
     zassert_true(r >= 0, "gpio_pin_get() failed: %d", -r);
