@@ -138,12 +138,11 @@
 			label = "GBI2C_0";
 			status = "okay";
 			compatible = "zephyr,greybus-i2c-controller";
-			greybus-i2c-controller = <&i2c0>;
+			greybus-i2c-controller = "I2C_0S";
 			/* I2C is CPort 2 in this case */
 			id = <2>;
 			cport-protocol = <CPORT_PROTOCOL_I2C>;
 		};
-
 	};
 
 	gbdevice0 {
@@ -163,7 +162,7 @@
 		id = <2>;
 		driver-string-id = <&gbstring4>;
 		protocol = <3>;
-		addr = <0x40>;
+		addr = <0x41>;
 	};
 	
 };

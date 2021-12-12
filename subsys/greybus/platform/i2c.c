@@ -80,8 +80,8 @@ static int greybus_i2c_control_init(const struct device *dev) {
                 .id = (uint8_t)DT_INST_PROP(_num, id), \
                 .bundle = (uint8_t)DT_PROP(DT_PARENT(DT_DRV_INST(_num)), id), \
 				.greybus_i2c_controller_name = 								\
-                    DT_LABEL(DT_PHANDLE(DT_DRV_INST(_num), 						\
-                    		greybus_i2c_controller)), 							\
+                    DT_PROP(DT_DRV_INST(_num), 						\
+                    		greybus_i2c_controller), 							\
 				.bus_name = 									\
 					DT_LABEL(DT_PARENT(DT_PARENT(DT_DRV_INST(_num)))),		\
         };																		\
