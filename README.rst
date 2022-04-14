@@ -79,7 +79,7 @@ above should be modified as shown below.
 .. code-block:: bash
 
     west build -b $BOARD -t flash ../greybus/samples/subsys/greybus/net \
-        -- -DOVERLAY_CONFIG="overlay-ble.conf"
+        -- -DOVERLAY_CONFIG="overlay-bt.conf"
 
 Network Configuration
 #####################
