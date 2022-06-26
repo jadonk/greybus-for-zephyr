@@ -17,13 +17,14 @@
     || defined(CONFIG_BOARD_NATIVE_POSIX_32BIT) \
     || defined(CONFIG_BOARD_NRF52_BSIM)
 
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <poll.h>
+// #include <arpa/inet.h>
+// #include <netinet/in.h>
+// #include <poll.h>
 #include <pthread.h>
 #include <sys/byteorder.h>
 #include <sys/types.h>
-#include <sys/socket.h>
+// #include <sys/socket.h>
+#include <zephyr/net/socket.h>
 #include <unistd.h>
 
 /*
@@ -41,15 +42,15 @@
 
 typedef int sec_tag_t;
 
-static inline struct sockaddr_in *net_sin(struct sockaddr *sa)
-{
-	return (struct sockaddr_in *)sa;
-}
+// static inline struct sockaddr_in *net_sin(struct sockaddr *sa)
+// {
+// 	return (struct sockaddr_in *)sa;
+// }
 
-static inline struct sockaddr_in6 *net_sin6(struct sockaddr *sa)
-{
-	return (struct sockaddr_in6 *)sa;
-}
+// static inline struct sockaddr_in6 *net_sin6(struct sockaddr *sa)
+// {
+// 	return (struct sockaddr_in6 *)sa;
+// }
 
 /* For some reason, not declared even with _GNU_SOURCE */
 extern int pthread_setname_np(pthread_t thread, const char *name);
