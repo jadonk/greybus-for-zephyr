@@ -1,0 +1,152 @@
+/*
+ * Copyright (c) 2020 Friedt Professional Engineering Services, Inc
+ *
+ * SPDX-License-Identifier: BSD-3-Clause
+ */
+ #include <dt-bindings/greybus/greybus.h>
+
+/ {
+	resources {
+		compatible = "test,greybus-i2c";
+		test-i2c = <&i2c0>; 
+	};
+	greybus0: greybus0 {
+		compatible = "zephyr,greybus";
+		label = "GREYBUS_0";
+		greybus;
+	};
+
+	aliases {
+		// accel-0 = &bmi_spi;
+		accel-1 = &bmi_i2c;
+	};
+};
+
+
+&gpio0 {
+	status = "okay";
+	ngpios = <2>;
+};
+
+// &spi0 {
+// 	bmi_spi: bmi@3 {
+// 		compatible = "bosch,bmi160";
+// 		spi-max-frequency = <50000000>;
+// 		reg = <3>;
+// 		label = "accel-spi";
+// 	};
+// };
+
+
+&i2c0 {
+	bmi_i2c: bmi@68 {
+		compatible = "bosch,bmi160";
+		reg = <0x68>;
+		label = "accel-i2c";
+	};
+};
+
+&greybus0 {
+	label = "GREYBUS_0";
+	status = "okay";
+	/* defaults in effect, so this isn't necessary */
+	version-major = <GREYBUS_VERSION_MAJOR>;
+	version-minor = <GREYBUS_VERSION_MINOR>;
+
+	gbstring1: gbstring1 {
+		label = "GBSTRING_1";
+		status = "okay";
+		compatible = "zephyr,greybus-string";
+		id = <1>;
+		greybus-string = "Zephyr Project RTOS";
+	};
+
+	gbstring2: gbstring2 {
+		label = "GBSTRING_2";
+		status = "okay";
+		compatible = "zephyr,greybus-string";
+		id = <2>;
+		greybus-string = "Greybus Service Sample Application";
+	};
+	gbstring3: gbstring3 {
+		label = "GBSTRING_3";
+		status = "okay";
+		compatible = "zephyr,greybus-string";
+		id = <3>;
+		greybus-string = "bmi160";
+	};
+	gbinterface0 {
+		label = "GBINTERFACE_0";
+		status = "okay";
+		compatible = "zephyr,greybus-interface";
+		vendor-string-id = <&gbstring1>;
+		product-string-id = <&gbstring2>;
+		greybus-interface;
+	};
+
+	gbbundle0 {
+		label = "GBBUNDLE_0";
+		status = "okay";
+		compatible = "zephyr,greybus-bundle";
+		greybus-bundle;
+		/* Control Bundle 0
+		 * Note: control bundle 0 and control cport 0 are optional
+		 * Since instance numbers automatically begin at 0, the id
+		 * is a mandatory field for bundles and cports.
+		 */
+		id = <CONTROL_BUNDLE_ID>;
+		bundle-class = <BUNDLE_CLASS_CONTROL>;
+
+		gbcontrol0 {
+			label = "GBCONTROL_0";
+			status = "okay";
+			compatible = "zephyr,greybus-control";
+			greybus-controller;
+			/* Control CPort 0
+			 * Note: control bundle 0 and control cport 0 are optional
+			 * Since instance numbers automatically begin at 0, the id
+			 * is a mandatory field for bundles and cports.
+			 */
+			id = <CONTROL_CPORT_ID>;
+			cport-protocol = <CPORT_PROTOCOL_CONTROL>; 
+		};
+	};
+	
+	gbbundle1 {
+		label = "GBBUNDLE_0";
+		status = "okay";
+		compatible = "zephyr,greybus-bundle";
+		greybus-bundle;
+		id = <1>;
+		bundle-class = <BUNDLE_CLASS_BRIDGED_PHY>;		
+				
+		gbgpio0 {
+			label = "GBGPIO_0";
+			status = "okay";
+			compatible = "zephyr,greybus-gpio-controller";
+			greybus-gpio-controller = <&gpio0>;
+			id = <1>;
+			cport-protocol = <CPORT_PROTOCOL_GPIO>;
+		};
+
+		gbi2c0 {
+			label = "GBI2C_0";
+			status = "okay";
+			compatible = "zephyr,greybus-i2c-controller";
+			greybus-i2c-controller = "I2C_0S";
+			/* I2C is CPort 2 in this case */
+			id = <2>;
+			cport-protocol = <CPORT_PROTOCOL_I2C>;
+		};
+	};
+
+	gbdevice0 {
+		label = "GBDEVICE_0";
+		status = "okay";
+		compatible = "zephyr,greybus-device";
+		id = <1>;
+		driver-string-id = <&gbstring3>;
+		protocol = <3>;
+		addr = <0x68>;
+	};
+};
