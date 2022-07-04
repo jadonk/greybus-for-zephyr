@@ -133,7 +133,7 @@
 			label = "GBI2C_0";
 			status = "okay";
 			compatible = "zephyr,greybus-i2c-controller";
-			greybus-i2c-controller = "I2C_0S";
+			greybus-i2c-controller = "I2C_0";
 			/* I2C is CPort 2 in this case */
 			id = <2>;
 			cport-protocol = <CPORT_PROTOCOL_I2C>;
