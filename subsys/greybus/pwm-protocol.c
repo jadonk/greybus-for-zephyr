@@ -100,11 +100,10 @@ static uint8_t gb_pwm_protocol_count(struct gb_operation *operation)
 {
     struct gb_pwm_info *pwm_info;
     struct gb_pwm_count_response *response;
-    struct gb_bundle *bundle;
+    struct gb_bundle *bundle = gb_operation_get_bundle(operation);;
     uint16_t count = 0;
     int ret;
 
-    bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
 
     pwm_info = bundle->priv;
@@ -159,7 +158,7 @@ static uint8_t gb_pwm_protocol_activate(struct gb_operation *operation)
 {
     struct gb_pwm_info *pwm_info;
     struct gb_pwm_activate_request *request;
-    struct gb_bundle *bundle;
+    struct gb_bundle *bundle = gb_operation_get_bundle(operation);;
     int ret;
 
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
@@ -167,7 +166,6 @@ static uint8_t gb_pwm_protocol_activate(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-    bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
 
     pwm_info = bundle->priv;
@@ -205,7 +203,7 @@ static uint8_t gb_pwm_protocol_deactivate(struct gb_operation *operation)
 {
     struct gb_pwm_info *pwm_info;
     struct gb_pwm_dectivate_request *request;
-    struct gb_bundle *bundle;
+    struct gb_bundle *bundle =  gb_operation_get_bundle(operation);
     int ret;
 
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
@@ -213,7 +211,6 @@ static uint8_t gb_pwm_protocol_deactivate(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-    bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
 
     pwm_info = bundle->priv;
@@ -252,7 +249,7 @@ static uint8_t gb_pwm_protocol_config(struct gb_operation *operation)
 {
     struct gb_pwm_info *pwm_info;
     struct gb_pwm_config_request *request;
-    struct gb_bundle *bundle;
+    struct gb_bundle *bundle = gb_operation_get_bundle(operation);
     uint32_t duty, period;
     int ret;
 
@@ -261,7 +258,6 @@ static uint8_t gb_pwm_protocol_config(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-    bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
 
     pwm_info = bundle->priv;
@@ -302,7 +298,7 @@ static uint8_t gb_pwm_protocol_polarity(struct gb_operation *operation)
 {
     struct gb_pwm_info *pwm_info;
     struct gb_pwm_polarity_request *request;
-    struct gb_bundle *bundle;
+    struct gb_bundle *bundle = gb_operation_get_bundle(operation);;
     int ret;
 
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
@@ -310,7 +306,6 @@ static uint8_t gb_pwm_protocol_polarity(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-    bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
 
     pwm_info = bundle->priv;
@@ -350,7 +345,7 @@ static uint8_t gb_pwm_protocol_enable(struct gb_operation *operation)
 {
     struct gb_pwm_info *pwm_info;
     struct gb_pwm_enable_request *request;
-    struct gb_bundle *bundle;
+    struct gb_bundle *bundle = gb_operation_get_bundle(operation);;
     int ret;
 
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
@@ -358,7 +353,6 @@ static uint8_t gb_pwm_protocol_enable(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-    bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
 
     pwm_info = bundle->priv;
@@ -397,7 +391,7 @@ static uint8_t gb_pwm_protocol_disable(struct gb_operation *operation)
 {
     struct gb_pwm_info *pwm_info;
     struct gb_pwm_disable_request *request;
-    struct gb_bundle *bundle;
+    struct gb_bundle *bundle = gb_operation_get_bundle(operation);;
     int ret;
 
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
@@ -405,7 +399,6 @@ static uint8_t gb_pwm_protocol_disable(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-    bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
 
     pwm_info = bundle->priv;
