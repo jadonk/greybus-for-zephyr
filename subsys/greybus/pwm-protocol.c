@@ -90,7 +90,6 @@ static uint8_t gb_pwm_protocol_count(struct gb_operation *operation)
     __ASSERT_NO_MSG(bundle != NULL);
     unsigned int cport_idx = operation->cport - bundle->cport_start;
     uint16_t count = 0;
-    int ret;
 
     dev = bundle->dev[cport_idx];
     if (dev == NULL) {
@@ -133,7 +132,6 @@ static uint8_t gb_pwm_protocol_activate(struct gb_operation *operation)
     unsigned int cport_idx = operation->cport - bundle->cport_start;
     struct gb_pwm_activate_request *request = 
         gb_operation_get_request_payload(operation);
-    int ret;
 
     dev = bundle->dev[cport_idx];
     if (dev == NULL) {
@@ -149,12 +147,14 @@ static uint8_t gb_pwm_protocol_activate(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-//TODO: use zephyr api
-    ret = device_pwm_activate(bundle->dev, request->which);
-    if (ret) {
-        LOG_INF("%s(): %x error in ops", __func__, ret);
-        return GB_OP_UNKNOWN_ERROR;
-    }
+    /* 
+     * Zephyr doesn't seem to have an "on-off" setting for pwm
+     */
+    // ret = device_pwm_activate(bundle->dev, request->which);
+    // if (ret) {
+    //     LOG_INF("%s(): %x error in ops", __func__, ret);
+    //     return GB_OP_UNKNOWN_ERROR;
+    // }
 
     return GB_OP_SUCCESS;
 }
@@ -177,7 +177,6 @@ static uint8_t gb_pwm_protocol_deactivate(struct gb_operation *operation)
     unsigned int cport_idx = operation->cport - bundle->cport_start;
     struct gb_pwm_dectivate_request *request =
         gb_operation_get_request_payload(operation);
-    int ret;
 
     dev = bundle->dev[cport_idx];
     if (dev == NULL) {
@@ -193,12 +192,14 @@ static uint8_t gb_pwm_protocol_deactivate(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-//TODO: use zephyr api
-    ret = device_pwm_deactivate(bundle->dev, request->which);
-    if (ret) {
-        LOG_INF("%s(): %x error in ops", __func__, ret);
-        return GB_OP_UNKNOWN_ERROR;
-    }
+    /**
+     * Zephyr doesn't seem to have an "on-off" setting for pwm
+     */
+    // ret = device_pwm_deactivate(bundle->dev, request->which);
+    // if (ret) {
+    //     LOG_INF("%s(): %x error in ops", __func__, ret);
+    //     return GB_OP_UNKNOWN_ERROR;
+    // }
 
     return GB_OP_SUCCESS;
 }
@@ -241,8 +242,7 @@ static uint8_t gb_pwm_protocol_config(struct gb_operation *operation)
 
     duty = sys_le32_to_cpu(request->duty);
     period = sys_le32_to_cpu(request->period);
-//TODO: use zephyr api    
-    ret = device_pwm_config(bundle->dev, request->which, duty, period);
+    ret = pwm_set_dt(dev, period, duty);
     if (ret) {
         LOG_INF("%s(): %x error in ops", __func__, ret);
         return GB_OP_UNKNOWN_ERROR;
@@ -270,7 +270,6 @@ static uint8_t gb_pwm_protocol_polarity(struct gb_operation *operation)
     unsigned int cport_idx = operation->cport - bundle->cport_start;
     struct gb_pwm_polarity_request *request =
         gb_operation_get_request_payload(operation);
-    int ret;
 
     dev = bundle->dev[cport_idx];
     if (dev == NULL) {
@@ -286,13 +285,7 @@ static uint8_t gb_pwm_protocol_polarity(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-//TODO: use zephyr api
-    ret = device_pwm_set_polarity(bundle->dev, request->which,
-                                          request->polarity);
-    if (ret) {
-        LOG_INF("%s(): %x error in ops", __func__, ret);
-        return GB_OP_UNKNOWN_ERROR;
-    }
+    dev->flags = request->polarity;
 
     return GB_OP_SUCCESS;
 }
@@ -316,7 +309,6 @@ static uint8_t gb_pwm_protocol_enable(struct gb_operation *operation)
     unsigned int cport_idx = operation->cport - bundle->cport_start;
     struct gb_pwm_enable_request *request =
         gb_operation_get_request_payload(operation);
-    int ret;
 
     dev = bundle->dev[cport_idx];
     if (dev == NULL) {
@@ -331,12 +323,14 @@ static uint8_t gb_pwm_protocol_enable(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-//TODO: use zephyr api
-    ret = device_pwm_enable(bundle->dev, request->which);
-    if (ret) {
-        LOG_INF("%s(): error %x in ops return", __func__, ret);
-        return GB_OP_UNKNOWN_ERROR;
-    }
+    /* 
+     * Zephyr doesn't seem to have an "on-off" setting for pwm
+     */
+    // ret = device_pwm_enable(bundle->dev, request->which);
+    // if (ret) {
+    //     LOG_INF("%s(): error %x in ops return", __func__, ret);
+    //     return GB_OP_UNKNOWN_ERROR;
+    // }
 
     return GB_OP_SUCCESS;
 }
@@ -360,7 +354,6 @@ static uint8_t gb_pwm_protocol_disable(struct gb_operation *operation)
     unsigned int cport_idx = operation->cport - bundle->cport_start;
     struct gb_pwm_disable_request *request
      = gb_operation_get_request_payload(operation);
-    int ret;
 
     dev = bundle->dev[cport_idx];
     if (dev == NULL) {
@@ -376,12 +369,14 @@ static uint8_t gb_pwm_protocol_disable(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-//TODO: use zephyr api
-    ret = device_pwm_disable(bundle->dev, request->which);
-    if (ret) {
-        LOG_INF("%s(): %x error in ops", __func__, ret);
-        return GB_OP_UNKNOWN_ERROR;
-    }
+    /* 
+     * Zephyr doesn't seem to have an "on-off" setting for pwm
+     */
+    // ret = device_pwm_disable(bundle->dev, request->which);
+    // if (ret) {
+    //     LOG_INF("%s(): %x error in ops", __func__, ret);
+    //     return GB_OP_UNKNOWN_ERROR;
+    // }
 
     return GB_OP_SUCCESS;
 }
