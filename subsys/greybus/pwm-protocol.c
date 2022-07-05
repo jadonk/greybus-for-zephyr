@@ -32,10 +32,10 @@
 #include <errno.h>
 
 #include <device.h>
-#include <device_pwm.h>
+#include <zephyr/drivers/pwm.h>
 #include <greybus/greybus.h>
 #include <sys/byteorder.h>
-#include <apps/greybus-utils/utils.h>
+#include <greybus-utils/utils.h>
 
 #include <logging/log.h>
 LOG_MODULE_REGISTER(greybus_pwm, CONFIG_GREYBUS_LOG_LEVEL);
@@ -105,7 +105,7 @@ static uint8_t gb_pwm_protocol_count(struct gb_operation *operation)
     int ret;
 
     bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
+    __ASSERT_NO_MSG(bundle != NULL);
 
     pwm_info = bundle->priv;
 
@@ -168,7 +168,7 @@ static uint8_t gb_pwm_protocol_activate(struct gb_operation *operation)
     }
 
     bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
+    __ASSERT_NO_MSG(bundle != NULL);
 
     pwm_info = bundle->priv;
 
@@ -214,7 +214,7 @@ static uint8_t gb_pwm_protocol_deactivate(struct gb_operation *operation)
     }
 
     bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
+    __ASSERT_NO_MSG(bundle != NULL);
 
     pwm_info = bundle->priv;
 
@@ -262,7 +262,7 @@ static uint8_t gb_pwm_protocol_config(struct gb_operation *operation)
     }
 
     bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
+    __ASSERT_NO_MSG(bundle != NULL);
 
     pwm_info = bundle->priv;
 
@@ -311,7 +311,7 @@ static uint8_t gb_pwm_protocol_polarity(struct gb_operation *operation)
     }
 
     bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
+    __ASSERT_NO_MSG(bundle != NULL);
 
     pwm_info = bundle->priv;
 
@@ -359,7 +359,7 @@ static uint8_t gb_pwm_protocol_enable(struct gb_operation *operation)
     }
 
     bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
+    __ASSERT_NO_MSG(bundle != NULL);
 
     pwm_info = bundle->priv;
 
@@ -406,7 +406,7 @@ static uint8_t gb_pwm_protocol_disable(struct gb_operation *operation)
     }
 
     bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
+    __ASSERT_NO_MSG(bundle != NULL);
 
     pwm_info = bundle->priv;
 
@@ -445,7 +445,7 @@ int gb_pwm_init(unsigned int cport, struct gb_bundle *bundle)
 {
     struct gb_pwm_info *pwm_info;
 
-    DEBUGASSERT(bundle);
+    __ASSERT_NO_MSG(bundle != NULL);
 
     pwm_info = zalloc(sizeof(*pwm_info));
     if (!pwm_info) {
@@ -481,7 +481,7 @@ void gb_pwm_exit(unsigned int cport, struct gb_bundle *bundle)
 {
     struct gb_pwm_info *pwm_info;
 
-    DEBUGASSERT(bundle);
+    __ASSERT_NO_MSG(bundle != NULL);
 
     if (bundle->dev) {
         device_close(bundle->dev);
