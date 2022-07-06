@@ -91,7 +91,7 @@ static uint8_t gb_pwm_protocol_count(struct gb_operation *operation)
     unsigned int cport_idx = operation->cport - bundle->cport_start;
     uint16_t count = 0;
 
-    dev = bundle->dev[cport_idx];
+    dev = bundle->priv;
     if (dev == NULL) {
         return GB_OP_INVALID;
     }
@@ -133,7 +133,7 @@ static uint8_t gb_pwm_protocol_activate(struct gb_operation *operation)
     struct gb_pwm_activate_request *request = 
         gb_operation_get_request_payload(operation);
 
-    dev = bundle->dev[cport_idx];
+    dev = bundle->priv;
     if (dev == NULL) {
         return GB_OP_INVALID;
     }
@@ -178,7 +178,7 @@ static uint8_t gb_pwm_protocol_deactivate(struct gb_operation *operation)
     struct gb_pwm_dectivate_request *request =
         gb_operation_get_request_payload(operation);
 
-    dev = bundle->dev[cport_idx];
+    dev = bundle->priv;
     if (dev == NULL) {
         return GB_OP_INVALID;
     }
@@ -226,7 +226,7 @@ static uint8_t gb_pwm_protocol_config(struct gb_operation *operation)
     uint32_t duty, period;
     int ret;
 
-    dev = bundle->dev[cport_idx];
+    dev = bundle->priv;
     if (dev == NULL) {
         return GB_OP_INVALID;
     }
@@ -271,7 +271,7 @@ static uint8_t gb_pwm_protocol_polarity(struct gb_operation *operation)
     struct gb_pwm_polarity_request *request =
         gb_operation_get_request_payload(operation);
 
-    dev = bundle->dev[cport_idx];
+    dev = bundle->priv;
     if (dev == NULL) {
         return GB_OP_INVALID;
     }
@@ -285,7 +285,8 @@ static uint8_t gb_pwm_protocol_polarity(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-    dev->flags = request->polarity;
+    //TODO
+    // dev->flags = request->polarity;
 
     return GB_OP_SUCCESS;
 }
@@ -310,7 +311,7 @@ static uint8_t gb_pwm_protocol_enable(struct gb_operation *operation)
     struct gb_pwm_enable_request *request =
         gb_operation_get_request_payload(operation);
 
-    dev = bundle->dev[cport_idx];
+    dev = bundle->priv;
     if (dev == NULL) {
         return GB_OP_INVALID;
     }
@@ -355,7 +356,7 @@ static uint8_t gb_pwm_protocol_disable(struct gb_operation *operation)
     struct gb_pwm_disable_request *request
      = gb_operation_get_request_payload(operation);
 
-    dev = bundle->dev[cport_idx];
+    dev = bundle->priv;
     if (dev == NULL) {
         return GB_OP_INVALID;
     }
@@ -397,8 +398,8 @@ int gb_pwm_init(unsigned int cport, struct gb_bundle *bundle)
 {
     unsigned int cport_idx = cport - bundle->cport_start;
 
-    bundle->dev[cport_idx] = (struct device *)gb_cport_to_device(cport);
-    if (!bundle->dev[cport_idx]) {
+    bundle->priv = (struct device *)gb_cport_to_device(cport);
+    if (!bundle->priv) {
         return -EIO;
     }
     return 0;
