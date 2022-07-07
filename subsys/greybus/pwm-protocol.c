@@ -84,15 +84,15 @@ static uint8_t gb_pwm_protocol_version(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_count(struct gb_operation *operation)
 {
-    const struct pwm_dt_spec *dev;
+    struct pwm_dt_spec *pwmdev;
     struct gb_pwm_count_response *response;
     struct gb_bundle *bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
     unsigned int cport_idx = operation->cport - bundle->cport_start;
     uint16_t count = 0;
 
-    dev = bundle->dev[cport_idx];
-    if (dev == NULL) {
+    pwmdev->dev = bundle->dev[cport_idx];
+    if (pwmdev->dev == NULL) {
         return GB_OP_INVALID;
     }
 
@@ -101,7 +101,7 @@ static uint8_t gb_pwm_protocol_count(struct gb_operation *operation)
         return GB_OP_NO_MEMORY;
     }
 
-    count = popcount(dev->channel);
+    count = popcount(pwmdev->channel);
     if (!count)
         return GB_OP_UNKNOWN_ERROR;
     
@@ -126,15 +126,15 @@ static uint8_t gb_pwm_protocol_count(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_activate(struct gb_operation *operation)
 {
-    const struct pwm_dt_spec *dev;
+    struct pwm_dt_spec *pwmdev;
     struct gb_bundle *bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
     unsigned int cport_idx = operation->cport - bundle->cport_start;
     struct gb_pwm_activate_request *request = 
         gb_operation_get_request_payload(operation);
 
-    dev = bundle->dev[cport_idx];
-    if (dev == NULL) {
+    pwmdev->dev = bundle->dev[cport_idx];
+    if (pwmdev->dev == NULL) {
         return GB_OP_INVALID;
     }
 
@@ -143,7 +143,7 @@ static uint8_t gb_pwm_protocol_activate(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-    if (request->which >= popcount(dev->channel)) {
+    if (request->which >= popcount(pwmdev->channel)) {
         return GB_OP_INVALID;
     }
 
@@ -171,15 +171,15 @@ static uint8_t gb_pwm_protocol_activate(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_deactivate(struct gb_operation *operation)
 {
-    const struct pwm_dt_spec *dev;
+    struct pwm_dt_spec *pwmdev;
     struct gb_bundle *bundle =  gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
     unsigned int cport_idx = operation->cport - bundle->cport_start;
     struct gb_pwm_dectivate_request *request =
         gb_operation_get_request_payload(operation);
 
-    dev = bundle->dev[cport_idx];
-    if (dev == NULL) {
+    pwmdev->dev = bundle->dev[cport_idx];
+    if (pwmdev->dev == NULL) {
         return GB_OP_INVALID;
     }
 
@@ -188,7 +188,7 @@ static uint8_t gb_pwm_protocol_deactivate(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-    if (request->which >= popcount(dev->channel)) {
+    if (request->which >= popcount(pwmdev->channel)) {
         return GB_OP_INVALID;
     }
 
@@ -217,7 +217,7 @@ static uint8_t gb_pwm_protocol_deactivate(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_config(struct gb_operation *operation)
 {
-    const struct pwm_dt_spec *dev;
+    struct pwm_dt_spec *pwmdev;
     struct gb_bundle *bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
     unsigned int cport_idx = operation->cport - bundle->cport_start;
@@ -226,8 +226,8 @@ static uint8_t gb_pwm_protocol_config(struct gb_operation *operation)
     uint32_t duty, period;
     int ret;
 
-    dev = bundle->dev[cport_idx];
-    if (dev == NULL) {
+    pwmdev->dev = bundle->dev[cport_idx];
+    if (pwmdev->dev == NULL) {
         return GB_OP_INVALID;
     }
 
@@ -236,13 +236,13 @@ static uint8_t gb_pwm_protocol_config(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-    if (request->which >= popcount(dev->channel)) {
+    if (request->which >= popcount(pwmdev->channel)) {
         return GB_OP_INVALID;
     }
 
     duty = sys_le32_to_cpu(request->duty);
     period = sys_le32_to_cpu(request->period);
-    ret = pwm_set_dt(dev, period, duty);
+    ret = pwm_set_dt(pwmdev, period, duty);
     if (ret) {
         LOG_INF("%s(): %x error in ops", __func__, ret);
         return GB_OP_UNKNOWN_ERROR;
@@ -264,15 +264,15 @@ static uint8_t gb_pwm_protocol_config(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_polarity(struct gb_operation *operation)
 {
-    const struct pwm_dt_spec *dev;
+    struct pwm_dt_spec *pwmdev;
     struct gb_bundle *bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
     unsigned int cport_idx = operation->cport - bundle->cport_start;
     struct gb_pwm_polarity_request *request =
         gb_operation_get_request_payload(operation);
 
-    dev = bundle->dev[cport_idx];
-    if (dev == NULL) {
+    pwmdev->dev = bundle->dev[cport_idx];
+    if (pwmdev->dev == NULL) {
         return GB_OP_INVALID;
     }
 
@@ -281,11 +281,11 @@ static uint8_t gb_pwm_protocol_polarity(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-    if (request->which >= popcount(dev->channel)) {
+    if (request->which >= popcount(pwmdev->channel)) {
         return GB_OP_INVALID;
     }
 
-    dev->flags = request->polarity;
+    pwmdev->flags = request->polarity;
 
     return GB_OP_SUCCESS;
 }
@@ -303,15 +303,15 @@ static uint8_t gb_pwm_protocol_polarity(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_enable(struct gb_operation *operation)
 {
-    const struct pwm_dt_spec *dev;
+    struct pwm_dt_spec *pwmdev;
     struct gb_bundle *bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
     unsigned int cport_idx = operation->cport - bundle->cport_start;
     struct gb_pwm_enable_request *request =
         gb_operation_get_request_payload(operation);
 
-    dev = bundle->dev[cport_idx];
-    if (dev == NULL) {
+    pwmdev->dev = bundle->dev[cport_idx];
+    if (pwmdev->dev == NULL) {
         return GB_OP_INVALID;
     }
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
@@ -319,7 +319,7 @@ static uint8_t gb_pwm_protocol_enable(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-    if (request->which >= popcount(dev->channel)) {
+    if (request->which >= popcount(pwmdev->channel)) {
         return GB_OP_INVALID;
     }
 
@@ -348,15 +348,15 @@ static uint8_t gb_pwm_protocol_enable(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_disable(struct gb_operation *operation)
 {
-    const struct pwm_dt_spec *dev;
+    struct pwm_dt_spec *pwmdev;
     struct gb_bundle *bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
     unsigned int cport_idx = operation->cport - bundle->cport_start;
     struct gb_pwm_disable_request *request
      = gb_operation_get_request_payload(operation);
 
-    dev = bundle->dev[cport_idx];
-    if (dev == NULL) {
+    pwmdev->dev = bundle->dev[cport_idx];
+    if (pwmdev->dev == NULL) {
         return GB_OP_INVALID;
     }
 
@@ -365,7 +365,7 @@ static uint8_t gb_pwm_protocol_disable(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-    if (request->which >= popcount(dev->channel)) {
+    if (request->which >= popcount(pwmdev->channel)) {
         return GB_OP_INVALID;
     }
 
