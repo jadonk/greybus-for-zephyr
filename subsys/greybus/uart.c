@@ -33,13 +33,12 @@
 #include <string.h>
 
 #include <device.h>
-#include <device_uart.h>
+#include <zephyr/drivers/uart.h>
 #include <util.h>
 #include <config.h>
 #include <greybus/types.h>
 #include <greybus/greybus.h>
-#include <unipro/unipro.h>
-#include <apps/greybus-utils/utils.h>
+#include <greybus-utils/utils.h>
 #include <sys/byteorder.h>
 
 #include <logging/log.h>
@@ -240,7 +239,7 @@ static void uart_ms_callback(void *data, uint8_t ms)
 {
     struct gb_uart_info *info;
 
-    DEBUGASSERT(data);
+    __ASSERT_NO_MSG(data != NULL);
     info = data;
 
     info->updated_ms = ms;
@@ -262,7 +261,7 @@ static void uart_ls_callback(void *data, uint8_t ls)
 {
     struct gb_uart_info *info;
 
-    DEBUGASSERT(data);
+    __ASSERT_NO_MSG(data != NULL);
     info = data;
 
     info->updated_ls = ls;
@@ -296,7 +295,7 @@ static void uart_rx_callback(struct device *dev, void *data, uint8_t *buffer,
     int ret;
     uint8_t flags = 0;
 
-    DEBUGASSERT(data);
+    __ASSERT_NO_MSG(data != NULL);
     info = data;
 
     info->rx_node->data_size = length;
@@ -331,6 +330,7 @@ static void uart_rx_callback(struct device *dev, void *data, uint8_t *buffer,
     }
 
     info->rx_node = node;
+    //TODO
     ret = device_uart_start_receiver(dev, node->buffer,
                                      info->rx_buf_size,
                                      NULL, NULL, uart_rx_callback);
@@ -352,21 +352,24 @@ static uint8_t parse_ms_ls_registers(uint8_t modem_status, uint8_t line_status)
 {
     uint16_t status = 0;
 
-    if (modem_status & MSR_DCD) {
+    if (modem_status & UART_LINE_CTRL_DCD) {
         status |= GB_UART_CTRL_DCD;
     }
-    if (modem_status & MSR_DSR) {
+    if (modem_status & UART_LINE_CTRL_DSR) {
         status |= GB_UART_CTRL_DSR;
     }
-    if (modem_status & MSR_RI) {
-        status |= GB_UART_CTRL_RI;
-    }
+    /*
+     * Ring indicator does not exist in zephyr 
+     */
+    // if (modem_status & UART_LINE_CTRL_RI) {
+    //     status |= GB_UART_CTRL_RI;
+    // }
 
     return status;
 }
 
 /**
- * @brief Modem and line status process thread
+` * @brief Modem and line status process thread
  *
  * This function is the thread for processing modem and line status change. It
  * uses the operation to send the event to the peer. It only sends the required
@@ -649,8 +652,10 @@ static uint8_t gb_uart_send_data(struct gb_operation *operation)
     int sent = 0;
     size_t request_size = gb_operation_get_request_payload_size(operation);
     struct gb_uart_send_data_request *request =
-                                   gb_operation_get_request_payload(operation);
-    struct gb_bundle *bundle;
+        gb_operation_get_request_payload(operation);
+    struct gb_bundle *bundle = 
+        gb_operation_get_bundle(operation);
+    __ASSERT_NO_MSG(bundle != NULL);
 
     if (request_size < sizeof(*request)) {
         LOG_ERR("dropping short message");
@@ -663,9 +668,6 @@ static uint8_t gb_uart_send_data(struct gb_operation *operation)
         LOG_ERR("dropping short message");
         return GB_OP_INVALID;
     }
-
-    bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
 
     ret = device_uart_start_transmitter(bundle->dev, request->data, size, NULL,
                                         &sent, NULL);
@@ -693,28 +695,27 @@ static uint8_t gb_uart_set_line_coding(struct gb_operation *operation)
     enum uart_stopbit stopbit;
     uint8_t databits;
     struct gb_serial_line_coding_request *request =
-                                   gb_operation_get_request_payload(operation);
-    struct gb_bundle *bundle;
+        gb_operation_get_request_payload(operation);
+    struct gb_bundle *bundle = 
+        gb_operation_get_bundle(operation);
+    __ASSERT_NO_MSG(bundle != NULL);
 
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
         LOG_ERR("dropping short message");
         return GB_OP_INVALID;
     }
 
-    bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
-
     baud = sys_le32_to_cpu(request->rate);
 
     switch (request->format) {
     case GB_SERIAL_1_STOP_BITS:
-        stopbit = ONE_STOP_BIT;
+        stopbit = UART_CFG_STOP_BITS_1;
         break;
     case GB_SERIAL_1_5_STOP_BITS:
-        stopbit = ONE5_STOP_BITS;
+        stopbit = UART_CFG_STOP_BITS_1_5;
         break;
     case GB_SERIAL_2_STOP_BITS:
-        stopbit = TWO_STOP_BITS;
+        stopbit = UART_CFG_STOP_BITS_2;
         break;
     default:
         return GB_OP_INVALID;
@@ -723,19 +724,19 @@ static uint8_t gb_uart_set_line_coding(struct gb_operation *operation)
 
     switch (request->parity) {
     case GB_SERIAL_NO_PARITY:
-        parity = NO_PARITY;
+        parity = UART_CFG_PARITY_NONE;
         break;
     case GB_SERIAL_ODD_PARITY:
-        parity = ODD_PARITY;
+        parity = UART_CFG_PARITY_ODD;
         break;
     case GB_SERIAL_EVEN_PARITY:
-        parity = EVEN_PARITY;
+        parity = UART_CFG_PARITY_EVEN;
         break;
     case GB_SERIAL_MARK_PARITY:
-        parity = MARK_PARITY;
+        parity = UART_CFG_PARITY_MARK;
         break;
     case GB_SERIAL_SPACE_PARITY:
-        parity = SPACE_PARITY;
+        parity = UART_CFG_PARITY_SPACE;
         break;
     default:
         return GB_OP_INVALID;
@@ -772,16 +773,15 @@ static uint8_t gb_uart_set_control_line_state(struct gb_operation *operation)
     uint8_t modem_ctrl = 0;
     uint16_t control;
     struct gb_uart_set_control_line_state_request *request =
-                                   gb_operation_get_request_payload(operation);
-    struct gb_bundle *bundle;
+        gb_operation_get_request_payload(operation);
+    struct gb_bundle *bundle = 
+        gb_operation_get_bundle(operation);
+    __ASSERT_NO_MSG(bundle != NULL);
 
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
         LOG_ERR("dropping short message");
         return GB_OP_INVALID;
     }
-
-    bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
 
     ret = device_uart_get_modem_ctrl(bundle->dev, &modem_ctrl);
     if (ret) {
@@ -790,15 +790,15 @@ static uint8_t gb_uart_set_control_line_state(struct gb_operation *operation)
 
     control = sys_le16_to_cpu(request->control);
     if (control & GB_UART_CTRL_DTR) {
-        modem_ctrl |= MCR_DTR;
+        modem_ctrl |= UART_LINE_CTRL_DTR;
     } else {
-        modem_ctrl &= ~MCR_DTR;
+        modem_ctrl &= ~UART_LINE_CTRL_DTR;
     }
 
     if (control & GB_UART_CTRL_RTS) {
-        modem_ctrl |= MCR_RTS;
+        modem_ctrl |= UART_LINE_CTRL_RTS;
     } else {
-        modem_ctrl &= ~MCR_RTS;
+        modem_ctrl &= ~UART_LINE_CTRL_RTS;
     }
 
     ret = device_uart_set_modem_ctrl(bundle->dev, &modem_ctrl);
@@ -821,16 +821,16 @@ static uint8_t gb_uart_send_break(struct gb_operation *operation)
 {
     int ret;
     struct gb_uart_set_break_request *request =
-                                   gb_operation_get_request_payload(operation);
-    struct gb_bundle *bundle;
+        gb_operation_get_request_payload(operation);
+    struct gb_bundle *bundle = 
+        gb_operation_get_bundle(operation);
+    __ASSERT_NO_MSG(bundle != NULL);
 
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
         LOG_ERR("dropping short message");
         return GB_OP_INVALID;
     }
 
-    bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
 
     ret = device_uart_set_break(bundle->dev, request->state);
     if (ret) {
@@ -939,7 +939,7 @@ static void gb_uart_exit(unsigned int cport, struct gb_bundle *bundle)
 {
     struct gb_uart_info *info;
 
-    DEBUGASSERT(bundle);
+    __ASSERT_NO_MSG(bundle != NULL);
     info = bundle->priv;
 
     if (!info)
