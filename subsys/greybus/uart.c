@@ -194,7 +194,7 @@ static uint8_t gb_uart_set_line_coding(struct gb_operation *operation)
 
     databits = request->data;
 
-    ret = uart_line_ctrl_set(bundle->dev, UART_LINE_CTRL_BAUD_RATE, baud);
+    ret = uart_line_ctrl_set(dev, UART_LINE_CTRL_BAUD_RATE, baud);
     if (ret) {
         return GB_OP_UNKNOWN_ERROR;
     }
@@ -212,42 +212,42 @@ static uint8_t gb_uart_set_line_coding(struct gb_operation *operation)
  */
 static uint8_t gb_uart_set_control_line_state(struct gb_operation *operation)
 {
+    const struct device *dev;
+    struct gb_bundle *bundle = gb_operation_get_bundle(operation);
+    __ASSERT_NO_MSG(bundle != NULL);
     int ret;
-    uint8_t modem_ctrl = 0;
+    uint32_t modem_ctrl = 0;
     uint16_t control;
+    unsigned int cport_idx = operation->cport - bundle->cport_start;
     struct gb_uart_set_control_line_state_request *request =
         gb_operation_get_request_payload(operation);
-    struct gb_bundle *bundle = 
-        gb_operation_get_bundle(operation);
-    __ASSERT_NO_MSG(bundle != NULL);
+
+    dev = bundle->dev[cport_idx];
+    if (dev == NULL) {
+        return GB_OP_INVALID;
+    }
 
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
         LOG_ERR("dropping short message");
         return GB_OP_INVALID;
     }
 
-    ret = device_uart_get_modem_ctrl(bundle->dev, &modem_ctrl);
-    if (ret) {
-        return GB_OP_UNKNOWN_ERROR;
-    }
-
     control = sys_le16_to_cpu(request->control);
+    uart_line_ctrl_get(dev, UART_LINE_CTRL_DTR, &modem_ctrl);
     if (control & GB_UART_CTRL_DTR) {
         modem_ctrl |= UART_LINE_CTRL_DTR;
     } else {
         modem_ctrl &= ~UART_LINE_CTRL_DTR;
     }
+    uart_line_ctrl_set(dev, UART_LINE_CTRL_DTR, modem_ctrl);
 
+    uart_line_ctrl_get(dev, UART_LINE_CTRL_RTS, &modem_ctrl);
     if (control & GB_UART_CTRL_RTS) {
         modem_ctrl |= UART_LINE_CTRL_RTS;
     } else {
         modem_ctrl &= ~UART_LINE_CTRL_RTS;
     }
-
-    ret = device_uart_set_modem_ctrl(bundle->dev, &modem_ctrl);
-    if (ret) {
-        return GB_OP_UNKNOWN_ERROR;
-    }
+    uart_line_ctrl_set(dev, UART_LINE_CTRL_RTS, modem_ctrl);
 
     return GB_OP_SUCCESS;
 }
