@@ -300,16 +300,16 @@ static void uart_rx_callback(struct device *dev, void *data, uint8_t *buffer,
 
     info->rx_node->data_size = length;
 
-    if (error & LSR_OE) {
+    if (error & UART_ERROR_OVERRUN) {
         flags |= GB_UART_RECV_FLAG_OVERRUN;
     }
-    if (error & LSR_PE) {
+    if (error & UART_ERROR_PARITY) {
         flags |= GB_UART_RECV_FLAG_PARITY;
     }
-    if (error & LSR_FE) {
+    if (error & UART_ERROR_FRAMING) {
         flags |= GB_UART_RECV_FLAG_FRAMING;
     }
-    if (error & LSR_BI) {
+    if (error & UART_BREAK) {
         flags |= GB_UART_RECV_FLAG_BREAK;
     }
     info->rx_node->data_flags = flags;
@@ -749,8 +749,7 @@ static uint8_t gb_uart_set_line_coding(struct gb_operation *operation)
 
     databits = request->data;
 
-    ret = device_uart_set_configuration(bundle->dev, baud, parity, databits,
-                                        stopbit, 1);
+    ret = uart_line_ctrl_set(bundle->dev, parity, stopbit);
                                         /* 1 for auto flow control enable */
     if (ret) {
         return GB_OP_UNKNOWN_ERROR;
@@ -852,78 +851,13 @@ static uint8_t gb_uart_send_break(struct gb_operation *operation)
  */
 static int gb_uart_init(unsigned int cport, struct gb_bundle *bundle)
 {
-    struct gb_uart_info *info;
-    int ret;
-    uint8_t ms = 0, ls = 0;
+    unsigned int cport_idx = cport - bundle->cport_start;
 
-    info = zalloc(sizeof(*info));
-    if (info == NULL) {
-        return -ENOMEM;
+    bundle->dev[cport_idx] = (struct device *)gb_cport_to_device(cport);
+    if (!bundle->dev[cport_idx]) {
+        return -EIO;
     }
-
-    bundle->priv = info;
-
-    LOG_DBG("%s(): GB uart info struct: 0x%p ", __func__, info);
-
-    info->cport = cport;
-
-    bundle->dev = device_open(DEVICE_TYPE_UART_HW, 0);
-    if (!bundle->dev) {
-        ret = -ENODEV;
-        goto err_device_close;
-    }
-
-    ret = uart_status_cb_init(info);
-     if (ret) {
-        goto err_device_close;
-     }
-
-    ret = uart_receiver_cb_init(bundle);
-    if (ret) {
-        goto err_status_cb_deinit;
-     }
-
-    /* update serial status */
-    ret = device_uart_get_modem_status(bundle->dev, &ms);
-    if (ret) {
-        goto err_receiver_cb_deinit;
-    }
-
-    ret = device_uart_get_line_status(bundle->dev, &ls);
-    if (ret) {
-        goto err_receiver_cb_deinit;
-    }
-
-    info->last_serial_state = parse_ms_ls_registers(ms, ls);
-
-    ret = device_uart_attach_ms_callback(bundle->dev, uart_ms_callback, info);
-    if (ret) {
-        goto err_receiver_cb_deinit;
-    }
-
-    ret = device_uart_attach_ls_callback(bundle->dev, uart_ls_callback, info);
-    if (ret) {
-        goto err_clr_ms_callback;
-    }
-
-    /* trigger the first receiving */
-    info->require_node = 1;
-    sem_post(&info->rx_sem);
-
-    return 0;
-
-err_clr_ms_callback:
-    device_uart_attach_ms_callback(bundle->dev, NULL, info);
-err_receiver_cb_deinit:
-    uart_receiver_cb_deinit(info);
-err_status_cb_deinit:
-    uart_status_cb_deinit(info);
-err_device_close:
-    device_close(bundle->dev);
-    bundle->priv = NULL;
-    bundle->dev = NULL;
-    free(info);
-    return ret;
+    return 0;    
 }
 
 /**
@@ -937,26 +871,8 @@ err_device_close:
  */
 static void gb_uart_exit(unsigned int cport, struct gb_bundle *bundle)
 {
-    struct gb_uart_info *info;
-
-    __ASSERT_NO_MSG(bundle != NULL);
-    info = bundle->priv;
-
-    if (!info)
-        return;
-
-    device_uart_attach_ls_callback(bundle->dev, NULL, NULL);
-
-    device_uart_attach_ms_callback(bundle->dev, NULL, NULL);
-
-    uart_receiver_cb_deinit(info);
-
-    uart_status_cb_deinit(info);
-
-    device_close(bundle->dev);
-    bundle->dev = NULL;
-
-    free(info);
+    ARG_UNUSED(cport);
+    ARG_UNUSED(bundle);
 }
 
 static struct gb_operation_handler gb_uart_handlers[] = {
