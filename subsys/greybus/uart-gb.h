@@ -48,9 +48,10 @@
 #define GB_UART_RECV_FLAG_BREAK         0x08    /* Break */
 
 /* stop bits */
-#define GB_SERIAL_1_STOP_BITS       0
-#define GB_SERIAL_1_5_STOP_BITS     1
-#define GB_SERIAL_2_STOP_BITS       2
+#define GB_SERIAL_0_5_STOP_BITS     0
+#define GB_SERIAL_1_STOP_BITS       1
+#define GB_SERIAL_1_5_STOP_BITS     2
+#define GB_SERIAL_2_STOP_BITS       3
 
 /* parity */
 #define GB_SERIAL_NO_PARITY         0
