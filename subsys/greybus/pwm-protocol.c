@@ -32,8 +32,9 @@
 #include <errno.h>
 
 #include <device.h>
-#include <zephyr/drivers/pwm.h>
+#include <drivers/pwm.h>
 #include <greybus/greybus.h>
+#include <greybus/platform.h>
 #include <sys/byteorder.h>
 #include <greybus-utils/utils.h>
 
@@ -84,7 +85,7 @@ static uint8_t gb_pwm_protocol_version(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_count(struct gb_operation *operation)
 {
-    struct pwm_dt_spec *pwmdev;
+    struct pwm_dt_spec *pwmdev = NULL;
     struct gb_pwm_count_response *response;
     struct gb_bundle *bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
@@ -126,7 +127,7 @@ static uint8_t gb_pwm_protocol_count(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_activate(struct gb_operation *operation)
 {
-    struct pwm_dt_spec *pwmdev;
+    struct pwm_dt_spec *pwmdev = NULL;
     struct gb_bundle *bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
     unsigned int cport_idx = operation->cport - bundle->cport_start;
@@ -171,7 +172,7 @@ static uint8_t gb_pwm_protocol_activate(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_deactivate(struct gb_operation *operation)
 {
-    struct pwm_dt_spec *pwmdev;
+    struct pwm_dt_spec *pwmdev = NULL;
     struct gb_bundle *bundle =  gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
     unsigned int cport_idx = operation->cport - bundle->cport_start;
@@ -217,7 +218,7 @@ static uint8_t gb_pwm_protocol_deactivate(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_config(struct gb_operation *operation)
 {
-    struct pwm_dt_spec *pwmdev;
+    struct pwm_dt_spec *pwmdev = NULL;
     struct gb_bundle *bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
     unsigned int cport_idx = operation->cport - bundle->cport_start;
@@ -264,7 +265,7 @@ static uint8_t gb_pwm_protocol_config(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_polarity(struct gb_operation *operation)
 {
-    struct pwm_dt_spec *pwmdev;
+    struct pwm_dt_spec *pwmdev = NULL;
     struct gb_bundle *bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
     unsigned int cport_idx = operation->cport - bundle->cport_start;
@@ -303,7 +304,7 @@ static uint8_t gb_pwm_protocol_polarity(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_enable(struct gb_operation *operation)
 {
-    struct pwm_dt_spec *pwmdev;
+    struct pwm_dt_spec *pwmdev = NULL;
     struct gb_bundle *bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
     unsigned int cport_idx = operation->cport - bundle->cport_start;
@@ -348,7 +349,7 @@ static uint8_t gb_pwm_protocol_enable(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_disable(struct gb_operation *operation)
 {
-    struct pwm_dt_spec *pwmdev;
+    struct pwm_dt_spec *pwmdev = NULL;
     struct gb_bundle *bundle = gb_operation_get_bundle(operation);
     __ASSERT_NO_MSG(bundle != NULL);
     unsigned int cport_idx = operation->cport - bundle->cport_start;
