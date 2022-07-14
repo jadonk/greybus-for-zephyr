@@ -262,24 +262,28 @@ static uint8_t gb_uart_set_control_line_state(struct gb_operation *operation)
  */
 static uint8_t gb_uart_send_break(struct gb_operation *operation)
 {
-    int ret;
+    const struct device *dev;
+    struct uart_config uart_config;
+    struct gb_bundle *bundle = gb_operation_get_bundle(operation);
+    __ASSERT_NO_MSG(bundle != NULL);
+    unsigned int cport_idx = operation->cport - bundle->cport_start;
     struct gb_uart_set_break_request *request =
         gb_operation_get_request_payload(operation);
-    struct gb_bundle *bundle = 
-        gb_operation_get_bundle(operation);
-    __ASSERT_NO_MSG(bundle != NULL);
+
+    dev = bundle->dev[cport_idx];
+    if (dev == NULL) {
+        return GB_OP_INVALID;
+    }
 
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
         LOG_ERR("dropping short message");
         return GB_OP_INVALID;
     }
-
-
-    ret = device_uart_set_break(bundle->dev, request->state);
-    if (ret) {
-        return GB_OP_UNKNOWN_ERROR;
-    }
-
+    uint32_t baud = uart_config.baudrate;
+    uart_config.baudrate = 1200;
+    uart_poll_out(dev, "0");
+    uart_config.baudrate = baud;
+    
     return GB_OP_SUCCESS;
 }
 
