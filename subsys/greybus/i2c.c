@@ -27,14 +27,14 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <device.h>
-#include <drivers/i2c.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/i2c.h>
 #include <errno.h>
 #include <greybus/greybus.h>
 #include <greybus/platform.h>
 #include <stdlib.h>
-#include <sys/byteorder.h>
-#include <zephyr.h>
+#include <zephyr/sys/byteorder.h>
+#include <zephyr/zephyr.h>
 
 #include "i2c-gb.h"
 

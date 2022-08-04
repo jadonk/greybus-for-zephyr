@@ -35,7 +35,7 @@
 #include <greybus-utils/svc.h>
 #include <greybus-utils/manifest.h>
 
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 
 static inline size_t gb_packet_size(const char *rbuf)
 {

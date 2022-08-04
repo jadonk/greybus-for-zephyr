@@ -36,7 +36,7 @@
 #include <limits.h>
 
 #include <list.h>
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 #include <greybus-utils/utils.h>
 //#include <nuttx/util.h>
 
@@ -45,10 +45,10 @@
     || defined(CONFIG_BOARD_NRF52_BSIM)
 #include <semaphore.h>
 #else
-#include <posix/semaphore.h>
+#include <zephyr/posix/semaphore.h>
 #endif
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_manifest, CONFIG_GREYBUS_LOG_LEVEL);
 
 #undef ALIGN

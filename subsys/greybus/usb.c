@@ -28,7 +28,7 @@
  * Author: Fabien Parent <fparent@baylibre.com>
  */
 
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 #include <greybus/greybus.h>
 #include <usb.h>
 #include "usb-gb.h"
@@ -37,7 +37,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_usb, CONFIG_GREYBUS_LOG_LEVEL);
 
 static struct device *usbdev;

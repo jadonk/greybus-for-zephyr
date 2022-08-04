@@ -31,15 +31,15 @@
 #include <string.h>
 #include <errno.h>
 
-#include <device.h>
+#include <zephyr/device.h>
 #include <device_lights.h>
 #include <greybus/greybus.h>
 #include <apps/greybus-utils/utils.h>
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 
 #include "lights-gb.h"
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_lights, CONFIG_GREYBUS_LOG_LEVEL);
 
 #define GB_LIGHTS_VERSION_MAJOR 0

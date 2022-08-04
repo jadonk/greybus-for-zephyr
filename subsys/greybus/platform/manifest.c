@@ -5,8 +5,8 @@
  */
 
 #include <errno.h>
-#include <zephyr.h>
-#include <sys/byteorder.h>
+#include <zephyr/zephyr.h>
+#include <zephyr/sys/byteorder.h>
 
 #ifdef CONFIG_GREYBUS_MANIFEST_BUILTIN
 static const unsigned char greybus_manifest_builtin[] = {
