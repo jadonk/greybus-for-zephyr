@@ -35,7 +35,7 @@
 
 //#include <config.h>
 //#include <list.h>
-#include <device.h>
+#include <zephyr/device.h>
 //#include <device_audio_board.h>
 //#include <device_codec.h>
 //#include <device_i2s.h>
@@ -47,9 +47,9 @@
 #include <greybus/greybus.h>
 #include <unipro/unipro.h>
 
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_audio, CONFIG_GREYBUS_LOG_LEVEL);
 
 #include "audio-gb.h"

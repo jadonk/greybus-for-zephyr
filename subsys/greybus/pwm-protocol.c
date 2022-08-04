@@ -38,7 +38,7 @@
 #include <sys/byteorder.h>
 #include <greybus-utils/utils.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_pwm, CONFIG_GREYBUS_LOG_LEVEL);
 
 #include "pwm-gb.h"

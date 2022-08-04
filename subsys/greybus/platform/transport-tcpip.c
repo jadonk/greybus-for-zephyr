@@ -5,20 +5,20 @@
  */
 
 #include <errno.h>
-#include <net/dns_sd.h>
+#include <zephyr/net/dns_sd.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <zephyr.h>
-#include <sys/dlist.h>
+#include <zephyr/zephyr.h>
+#include <zephyr/sys/dlist.h>
 
 #if defined(CONFIG_BOARD_NATIVE_POSIX_64BIT) \
     || defined(CONFIG_BOARD_NATIVE_POSIX_32BIT) \
     || defined(CONFIG_BOARD_NRF52_BSIM)
 
 #include <pthread.h>
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 #include <sys/types.h>
 #include <zephyr/net/socket.h>
 
@@ -46,9 +46,9 @@ extern int usleep(useconds_t usec);
 
 #include <greybus/greybus.h>
 #include <greybus-utils/manifest.h>
-#include <posix/unistd.h>
-#include <posix/pthread.h>
-#include <net/net_ip.h>
+#include <zephyr/posix/unistd.h>
+#include <zephyr/posix/pthread.h>
+#include <zephyr/net/net_ip.h>
 
 unsigned int sleep(unsigned int seconds)
 {
@@ -63,7 +63,7 @@ int usleep(useconds_t usec) {
 
 #endif
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_transport_tcpip, CONFIG_GREYBUS_LOG_LEVEL);
 
 #include "transport.h"

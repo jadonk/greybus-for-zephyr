@@ -7,7 +7,7 @@
 #ifndef __TEST_SPI_H__
 #define __TEST_SPI_H__
 
-#include <devicetree.h>
+#include <zephyr/devicetree.h>
 
 #if DT_NODE_HAS_STATUS(DT_ALIAS(spi_0), okay)
 #define SPI_DEV_NAME	DT_LABEL(DT_ALIAS(spi_0))

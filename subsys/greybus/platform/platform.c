@@ -4,15 +4,15 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <device.h>
+#include <zephyr/device.h>
 #include <errno.h>
 #include <greybus/platform.h>
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zephyr.h>
+#include <zephyr/zephyr.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_platform, CONFIG_GREYBUS_LOG_LEVEL);
 
 struct map_entry {

@@ -4,9 +4,9 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <drivers/gpio/gpio_emul.h>
-#include <sys/util.h>
-#include <zephyr.h>
+#include <zephyr/drivers/gpio/gpio_emul.h>
+#include <zephyr/sys/util.h>
+#include <zephyr/zephyr.h>
 
 #include "test-greybus-gpio.h"
 

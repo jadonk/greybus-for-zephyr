@@ -5,7 +5,7 @@
  */
 
 #include <stdio.h>
-#include <zephyr.h>
+#include <zephyr/zephyr.h>
 
 void main(void)
 {

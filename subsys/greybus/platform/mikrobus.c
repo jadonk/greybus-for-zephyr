@@ -5,16 +5,16 @@
  */
 
 #include <stdint.h>
-#include <zephyr.h>
+#include <zephyr/zephyr.h>
 
 #define DT_DRV_COMPAT zephyr_greybus_mikrobusid
-#include <device.h>
-#include <devicetree.h>
+#include <zephyr/device.h>
+#include <zephyr/devicetree.h>
 #include <errno.h>
-#include <drivers/gpio.h>
-#include <logging/log.h>
+#include <zephyr/drivers/gpio.h>
+#include <zephyr/logging/log.h>
 #include <stdlib.h>
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 #include <stddef.h>
 
 #include "w1-gpio.h"
