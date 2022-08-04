@@ -31,11 +31,11 @@
 #include <string.h>
 #include <errno.h>
 
-#include <device.h>
-#include <drivers/pwm.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/pwm.h>
 #include <greybus/greybus.h>
 #include <greybus/platform.h>
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 #include <greybus-utils/utils.h>
 
 #include <zephyr/logging/log.h>
