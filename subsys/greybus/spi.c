@@ -26,17 +26,17 @@
  * ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include <device.h>
-#include <drivers/spi.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/spi.h>
 #include <errno.h>
 #include <greybus/greybus.h>
 #include <greybus/platform.h>
 #include <stdlib.h>
 #include <string.h>
 #include <greybus-utils/utils.h>
-#include <sys/byteorder.h>
-#include <zephyr.h>
-#include <logging/log.h>
+#include <zephyr/sys/byteorder.h>
+#include <zephyr/zephyr.h>
+#include <zephyr/logging/log.h>
 
 #if defined(CONFIG_BOARD_NATIVE_POSIX_64BIT) \
     || defined(CONFIG_BOARD_NATIVE_POSIX_32BIT) \
@@ -44,7 +44,7 @@
 #include <unistd.h>
 extern int usleep(useconds_t usec);
 #else
-#include <posix/unistd.h>
+#include <zephyr/posix/unistd.h>
 #endif
 
 #include "spi-gb.h"

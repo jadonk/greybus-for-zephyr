@@ -33,7 +33,7 @@
 #include <unipro/unipro.h>
 #include <greybus/greybus.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_unipro, CONFIG_GREYBUS_LOG_LEVEL);
 
 static int gb_unipro_rx_handler(unsigned int cport, void *data, size_t size)

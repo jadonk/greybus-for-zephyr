@@ -32,7 +32,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <device.h>
+#include <zephyr/device.h>
 #include <device_uart.h>
 #include <util.h>
 #include <config.h>
@@ -40,9 +40,9 @@
 #include <greybus/greybus.h>
 #include <unipro/unipro.h>
 #include <apps/greybus-utils/utils.h>
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_uart, CONFIG_GREYBUS_LOG_LEVEL);
 
 #include "uart-gb.h"

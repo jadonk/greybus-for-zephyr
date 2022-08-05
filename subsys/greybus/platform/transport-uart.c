@@ -4,17 +4,17 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <device.h>
-#include <drivers/uart.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/uart.h>
 #include <errno.h>
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/byteorder.h>
-#include <sys/ring_buffer.h>
-#include <zephyr.h>
+#include <zephyr/sys/byteorder.h>
+#include <zephyr/sys/ring_buffer.h>
+#include <zephyr/zephyr.h>
 
 #include "transport.h"
 

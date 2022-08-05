@@ -4,13 +4,13 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <device.h>
+#include <zephyr/device.h>
 #include <errno.h>
 #include <greybus/greybus.h>
 #include <string.h>
-#include <sys/util.h>
+#include <zephyr/sys/util.h>
 #include <ztest.h>
-#include <zephyr.h>
+#include <zephyr/zephyr.h>
 
 #if defined(CONFIG_BOARD_NATIVE_POSIX_64BIT) \
     || defined(CONFIG_BOARD_NATIVE_POSIX_32BIT) \
@@ -19,7 +19,7 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <poll.h>
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -40,16 +40,16 @@ static inline struct sockaddr_in6 *net_sin6(struct sockaddr *sa)
 
 #else
 
-#include <net/net_ip.h>
-#include <net/socket.h>
-#include <posix/unistd.h>
+#include <zephyr/net/net_ip.h>
+#include <zephyr/net/socket.h>
+#include <zephyr/posix/unistd.h>
 
 #undef perror
 #define perror(s) LOG_ERR("%s", s)
 
 #endif
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_test_gpio, CONFIG_GREYBUS_LOG_LEVEL);
 
 /* slightly annoying */

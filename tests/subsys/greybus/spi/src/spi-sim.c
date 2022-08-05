@@ -6,15 +6,15 @@
 
 #ifdef CONFIG_SPI_SIM
 
-#include <drivers/spi.h>
-#include <drivers/gpio.h>
+#include <zephyr/drivers/spi.h>
+#include <zephyr/drivers/gpio.h>
 #include <drivers/spi/spi_sim.h>
-#include <drivers/eeprom.h>
+#include <zephyr/drivers/eeprom.h>
 #include <stdio.h>
-#include <sys/util.h>
-#include <zephyr.h>
+#include <zephyr/sys/util.h>
+#include <zephyr/zephyr.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(test_spi_sim, CONFIG_SPI_LOG_LEVEL);
 
 #ifndef SPI_DEV_NAME
