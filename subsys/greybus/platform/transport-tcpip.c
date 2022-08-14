@@ -140,12 +140,18 @@ static struct fd_context *fd_context_new(int fd, int cport, enum fd_context_type
 	ctx->cport = cport;
 	ctx->type = type;
 	sys_dnode_init(&ctx->node);
+	if (&ctx->node)
+	{
+		LOG_PRINTK("********INITIALIZED DLIST\tCPORT:%d********\n", ctx->cport);
+	}
+	
 
 	return ctx;
 }
 
 static void fd_context_delete(struct fd_context *ctx)
 {
+	LOG_PRINTK("********FD_CONTEXT_DELETE\tCPORT:%d********\n", ctx->cport);
 	if (ctx == NULL) {
 		return;
 	}
@@ -180,6 +186,7 @@ static bool fd_context_insert(int fd, int cport, enum fd_context_type type)
 		}
 	}
 
+	LOG_PRINTK("********FD_CONTEXT_INSERT\tCPORT:%d********\n", ctx->cport);
 	sys_dlist_append(&fd_list, &ctx->node);
 	success = true;
 
@@ -285,6 +292,7 @@ static struct fd_context *fd_context_find(int fd, int cport, enum fd_context_typ
 	}
 
 	pthread_mutex_unlock(&fd_list_mutex);
+	LOG_PRINTK("********FD_CONTEXT_FIND\tCPORT:%d********\n", ctx->cport);
 
 out:
 	return ctx;
@@ -555,6 +563,7 @@ static int getMessage(int fd, struct gb_operation_hdr **msg)
 		}
 	}
 
+	LOG_PRINTK("********GET_MESSAGE, gb: get(%d, %p, %zu, 0)********\n", &((uint8_t *)msg)[offset], remaining, fd);
 	return msg_size;
 }
 
@@ -584,6 +593,7 @@ static int sendMessage(int fd, struct gb_operation_hdr *msg)
 		written = r;
 	}
 
+	LOG_PRINTK("********SEND_MESSAGE, gb: send(%d, %p, %zu, 0)********\n", &((uint8_t *)msg)[offset], remaining, fd);
 	return 0;
 }
 
@@ -630,6 +640,7 @@ static int gb_xport_send(unsigned int cport, const void *buf, size_t len)
     }
 
     r = sendMessage(ctx->fd, msg);
+	LOG_PRINTK("********%d\n", r);
     if (r != 0) {
     	fd_context_erase(ctx->fd);
     }

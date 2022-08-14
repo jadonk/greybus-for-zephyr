@@ -268,7 +268,7 @@ static void gb_process_request(struct gb_operation_hdr *hdr,
     operation->bundle = g_cport[operation->cport].driver->bundle;
 
     result = op_handler->handler(operation);
-    LOG_DBG("%s: %u", log_strdup(gb_handler_name(op_handler)), result);
+    LOG_DBG("%s: %u", gb_handler_name(op_handler), result);
 
     if (hdr->id)
         gb_operation_send_response(operation, result);
