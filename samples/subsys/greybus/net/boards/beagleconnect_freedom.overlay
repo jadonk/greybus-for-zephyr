@@ -148,7 +148,7 @@
 			label = "GBUART_0";
 			status = "okay";
 			compatible = "zephyr,greybus-uart-controller";
-			greybus-uart-controller = <&uart0>;
+			greybus-uart-controller = <&uart1>;
 			/* UART is CPort 3 in this case */
 			id = <3>;
 			cport-protocol = <CPORT_PROTOCOL_UART>;
