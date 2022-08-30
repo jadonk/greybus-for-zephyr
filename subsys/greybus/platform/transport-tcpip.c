@@ -17,7 +17,7 @@
     || defined(CONFIG_BOARD_NATIVE_POSIX_32BIT) \
     || defined(CONFIG_BOARD_NRF52_BSIM)
 
-#include <pthread.h>
+// #include <pthread.h>
 #include <zephyr/sys/byteorder.h>
 #include <sys/types.h>
 #include <zephyr/net/socket.h>
