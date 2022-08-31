@@ -73,22 +73,23 @@ static int greybus_uart_control_init(const struct device *dev) {
 																				\
 		static struct greybus_uart_control_config								\
 			greybus_uart_control_config_##_num = {								\
-                .id = (uint8_t)DT_INST_PROP(_num, id), \
-                .bundle = (uint8_t)DT_PROP(DT_PARENT(DT_DRV_INST(_num)), id), \
+                .id = (uint8_t)DT_INST_PROP(_num, id), 							\
+                .bundle = (uint8_t)DT_PROP(DT_PARENT(DT_DRV_INST(_num)), id), 	\
 				.greybus_uart_controller_name = 								\
-                    DT_PROP(DT_DRV_INST(_num), 						\
-                    		greybus_uart_controller), 							\
-				.bus_name = 									\
-					DT_LABEL(DT_PARENT(DT_PARENT(DT_DRV_INST(_num)))),		\
+                    DT_LABEL(DT_PHANDLE(DT_DRV_INST(_num), 						\
+                    		greybus_uart_controller)), 							\
+				.bus_name = 													\
+					DT_LABEL(DT_PARENT(DT_PARENT(DT_DRV_INST(_num)))),			\
         };																		\
         																		\
         static struct greybus_uart_control_data									\
 			greybus_uart_control_data_##_num;									\
         																		\
-        DEVICE_DT_INST_DEFINE(_num,					\
+        DEVICE_DT_INST_DEFINE(_num, 											\
                             greybus_uart_control_init, NULL,				\
 							&greybus_uart_control_data_##_num,					\
                             &greybus_uart_control_config_##_num, POST_KERNEL,	\
                             CONFIG_GREYBUS_CPORT_INIT_PRIORITY, NULL);
+
 
 DT_INST_FOREACH_STATUS_OKAY(DEFINE_GREYBUS_UART_CONTROL);
