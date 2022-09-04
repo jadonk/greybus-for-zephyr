@@ -134,6 +134,7 @@ static uint8_t gb_uart_set_line_coding(struct gb_operation *operation)
     enum uart_config_stop_bits stopbit;
     enum uart_config_data_bits databits;
     enum uart_config_flow_control flowcontrol;
+    struct uart_config *cfg;
     unsigned int cport_idx = operation->cport - bundle->cport_start;
     struct gb_serial_line_coding_request *request =
         gb_operation_get_request_payload(operation);
@@ -152,15 +153,15 @@ static uint8_t gb_uart_set_line_coding(struct gb_operation *operation)
 
     switch (request->format) {
     case GB_SERIAL_0_5_STOP_BITS:
-        stopbit = UART_CFG_STOP_BITS_0_5;
+        cfg->stop_bits = UART_CFG_STOP_BITS_0_5;
     case GB_SERIAL_1_STOP_BITS:
-        stopbit = UART_CFG_STOP_BITS_1;
+        cfg->stop_bits = UART_CFG_STOP_BITS_1;
         break;
     case GB_SERIAL_1_5_STOP_BITS:
-        stopbit = UART_CFG_STOP_BITS_1_5;
+        cfg->stop_bits = UART_CFG_STOP_BITS_1_5;
         break;
     case GB_SERIAL_2_STOP_BITS:
-        stopbit = UART_CFG_STOP_BITS_2;
+        cfg->stop_bits = UART_CFG_STOP_BITS_2;
         break;
     default:
         return GB_OP_INVALID;
@@ -169,19 +170,19 @@ static uint8_t gb_uart_set_line_coding(struct gb_operation *operation)
 
     switch (request->parity) {
     case GB_SERIAL_NO_PARITY:
-        parity = UART_CFG_PARITY_NONE;
+        cfg->parity = UART_CFG_PARITY_NONE;
         break;
     case GB_SERIAL_ODD_PARITY:
-        parity = UART_CFG_PARITY_ODD;
+        cfg->parity = UART_CFG_PARITY_ODD;
         break;
     case GB_SERIAL_EVEN_PARITY:
-        parity = UART_CFG_PARITY_EVEN;
+        cfg->parity = UART_CFG_PARITY_EVEN;
         break;
     case GB_SERIAL_MARK_PARITY:
-        parity = UART_CFG_PARITY_MARK;
+        cfg->parity = UART_CFG_PARITY_MARK;
         break;
     case GB_SERIAL_SPACE_PARITY:
-        parity = UART_CFG_PARITY_SPACE;
+        cfg->parity = UART_CFG_PARITY_SPACE;
         break;
     default:
         return GB_OP_INVALID;
@@ -194,7 +195,8 @@ static uint8_t gb_uart_set_line_coding(struct gb_operation *operation)
 
     databits = request->data;
 
-    ret = uart_line_ctrl_set(dev, UART_LINE_CTRL_BAUD_RATE, baud);
+    // ret = uart_line_ctrl_set(dev, UART_LINE_CTRL_BAUD_RATE, baud);
+    ret - uart_configure(dev, cfg);
     if (ret) {
         return GB_OP_UNKNOWN_ERROR;
     }
