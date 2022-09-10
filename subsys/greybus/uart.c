@@ -130,10 +130,6 @@ static uint8_t gb_uart_set_line_coding(struct gb_operation *operation)
     __ASSERT_NO_MSG(bundle != NULL);
     int ret;
     uint32_t baud;
-    enum uart_config_parity parity;
-    enum uart_config_stop_bits stopbit;
-    enum uart_config_data_bits databits;
-    enum uart_config_flow_control flowcontrol;
     struct uart_config *cfg;
     unsigned int cport_idx = operation->cport - bundle->cport_start;
     struct gb_serial_line_coding_request *request =
@@ -151,6 +147,7 @@ static uint8_t gb_uart_set_line_coding(struct gb_operation *operation)
 
     baud = sys_le32_to_cpu(request->rate);
 
+#warning setting up config causes bus faults
     switch (request->format) {
     case GB_SERIAL_0_5_STOP_BITS:
         cfg->stop_bits = UART_CFG_STOP_BITS_0_5;
@@ -193,10 +190,9 @@ static uint8_t gb_uart_set_line_coding(struct gb_operation *operation)
         return GB_OP_INVALID;
     }
 
-    databits = request->data;
+    // cfg->data_bits = request->data;
 
-    // ret = uart_line_ctrl_set(dev, UART_LINE_CTRL_BAUD_RATE, baud);
-    ret - uart_configure(dev, cfg);
+    ret = uart_configure(dev, cfg);
     if (ret) {
         return GB_OP_UNKNOWN_ERROR;
     }
