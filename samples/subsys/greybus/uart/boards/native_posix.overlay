@@ -16,10 +16,10 @@
 		greybus;
 	};
 
-	aliases {
-		// accel-0 = &bmi_spi;
-		accel-1 = &bmi_i2c;
-	};
+	// aliases {
+	// 	// accel-0 = &bmi_spi;
+	// 	accel-1 = &bmi_i2c;
+	// };
 };
 
 
@@ -38,13 +38,13 @@
 // };
 
 
-&i2c0 {
-	bmi_i2c: bmi@68 {
-		compatible = "bosch,bmi160";
-		reg = <0x68>;
-		label = "accel-i2c";
-	};
-};
+// &i2c0 {
+// 	bmi_i2c: bmi@68 {
+// 		compatible = "bosch,bmi160";
+// 		reg = <0x68>;
+// 		label = "accel-i2c";
+// 	};
+// };
 
 &greybus0 {
 	label = "GREYBUS_0";
@@ -129,15 +129,15 @@
 			cport-protocol = <CPORT_PROTOCOL_GPIO>;
 		};
 
-		gbi2c0 {
-			label = "GBI2C_0";
-			status = "okay";
-			compatible = "zephyr,greybus-i2c-controller";
-			greybus-i2c-controller = "I2C_0";
-			/* I2C is CPort 2 in this case */
-			id = <2>;
-			cport-protocol = <CPORT_PROTOCOL_I2C>;
-		};
+		// gbi2c0 {
+		// 	label = "GBI2C_0";
+		// 	status = "okay";
+		// 	compatible = "zephyr,greybus-i2c-controller";
+		// 	greybus-i2c-controller = "I2C_0";
+		// 	/* I2C is CPort 2 in this case */
+		// 	id = <2>;
+		// 	cport-protocol = <CPORT_PROTOCOL_I2C>;
+		// };
 	};
 
 	gbdevice0 {
