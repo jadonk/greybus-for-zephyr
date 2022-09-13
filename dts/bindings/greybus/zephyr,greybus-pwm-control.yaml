@@ -1,0 +1,22 @@
+# Copyright (c) 2022, Harshil Bhatt
+# SPDX-License-Identifier: BSD-3-Clause
+
+# Common fields for Greybus PWM Controllers
+
+description: Greybus PWM Controller
+
+compatible: "zephyr,greybus-pwm-controller"
+
+include: ["zephyr,greybus-cport.yaml"]
+
+properties:
+    "greybus-pwm-controller":
+      type: phandle
+      required: true
+      description: Conveys which PWM port is associated with this Greybus PWM Controller instance
+    "cport-protocol":
+      type: int
+      # PWM protocol
+      default: 0x09
+      const: 0x09
+      description: The PWM CPort protocol
