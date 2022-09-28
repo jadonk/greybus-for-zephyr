@@ -7,5 +7,5 @@ manifest:
   projects:
     - name: zephyr
       remote: zephyrproject-rtos
-      revision: master
+      revision: v2.7.0
       import: true

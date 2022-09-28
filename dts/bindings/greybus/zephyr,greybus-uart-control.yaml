@@ -1,0 +1,22 @@
+# Copyright (c) 2022, Harshil Bhatt
+# SPDX-License-Identifier: BSD-3-Clause
+
+# Common fields for Greybus UART Controllers
+
+description: Greybus UART Controller
+
+compatible: "zephyr,greybus-uart-controller"
+
+include: ["zephyr,greybus-cport.yaml"]
+
+properties:
+    "greybus-uart-controller":
+      type: phandle
+      required: true
+      description: Conveys which UART port is associated with this Greybus UART Controller instance
+    "cport-protocol":
+      type: int
+      # UART protocol
+      default: 0x04
+      const: 0x04
+      description: The UART CPort protocol

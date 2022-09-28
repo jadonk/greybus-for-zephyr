@@ -138,7 +138,8 @@ def get_bundle_descriptors(defines):
 def get_cport_descriptors(defines):
     # add keys as necessary
     cport_keys = ['"zephyr,greybus-control"', '"zephyr,greybus-gpio-controller"',
-                  '"zephyr,greybus-i2c-controller"', '"zephyr,greybus-spi-controller"']
+                  '"zephyr,greybus-i2c-controller"', '"zephyr,greybus-spi-controller"',
+                  '"zephyr,greybus-uart-controller"']
     cd = {}
     for key in defines:
         val = defines[key]

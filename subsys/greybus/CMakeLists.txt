@@ -12,8 +12,6 @@ zephyr_library_sources(
 	greybus-manifest.c
 
 	platform/manifest.c
- 	platform/mikrobus.c
-	platform/w1-gpio.c
 	platform/platform.c
 
 	platform/service.c
@@ -85,6 +83,7 @@ zephyr_library_sources_ifdef(CONFIG_GREYBUS_POWER_SUPPLY   power_supply.c)
 zephyr_library_sources_ifdef(CONFIG_GREYBUS_PWM            pwm-protocol.c)
 zephyr_library_sources_ifdef(CONFIG_GREYBUS_SDIO           sdio.c)
 zephyr_library_sources_ifdef(CONFIG_GREYBUS_SPI            spi.c platform/spi.c)
-zephyr_library_sources_ifdef(CONFIG_GREYBUS_UART           uart.c)
+zephyr_library_sources_ifdef(CONFIG_GREYBUS_UART           uart.c platform/uart.c)
 zephyr_library_sources_ifdef(CONFIG_GREYBUS_USB            usb.c)
 zephyr_library_sources_ifdef(CONFIG_GREYBUS_VIBRATOR       vibrator.c)
+zephyr_library_sources_ifdef(CONFIG_GREYBUS_CLICK_MANIFEST_CLICKID       platform/mikrobus.c platform/w1-gpio.c)
