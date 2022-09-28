@@ -1,5 +1,6 @@
 /**
  * Copyright (c) 2015 Google, Inc.
+ * Copyright (c) 2022 Harshil Bhatt
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,13 +32,14 @@
 #include <string.h>
 #include <errno.h>
 
-#include <device.h>
-#include <device_pwm.h>
+#include <zephyr/device.h>
+#include <zephyr/drivers/pwm.h>
 #include <greybus/greybus.h>
-#include <sys/byteorder.h>
-#include <apps/greybus-utils/utils.h>
+#include <greybus/platform.h>
+#include <zephyr/sys/byteorder.h>
+#include <greybus-utils/utils.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_pwm, CONFIG_GREYBUS_LOG_LEVEL);
 
 #include "pwm-gb.h"
@@ -48,20 +50,6 @@ LOG_MODULE_REGISTER(greybus_pwm, CONFIG_GREYBUS_LOG_LEVEL);
  */
 #define GB_PWM_VERSION_MAJOR 0
 #define GB_PWM_VERSION_MINOR 1
-
-struct gb_pwm_info {
-    /** assigned CPort number */
-    uint16_t        cport;
-
-    /** device type for this device */
-    char            *dev_type;
-
-    /** Id for device in device table */
-    uint16_t        dev_id;
-
-    /** the number of generator supported */
-    uint16_t        num_pwms;
-};
 
 /**
  * @brief Get this firmware supported PWM protocol vsersion.
@@ -98,19 +86,16 @@ static uint8_t gb_pwm_protocol_version(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_count(struct gb_operation *operation)
 {
-    struct gb_pwm_info *pwm_info;
+    struct pwm_dt_spec *pwmdev = NULL;
     struct gb_pwm_count_response *response;
-    struct gb_bundle *bundle;
+    struct gb_bundle *bundle = gb_operation_get_bundle(operation);
+    __ASSERT_NO_MSG(bundle != NULL);
+    unsigned int cport_idx = operation->cport - bundle->cport_start;
     uint16_t count = 0;
-    int ret;
 
-    bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
-
-    pwm_info = bundle->priv;
-
-    if (!pwm_info || !bundle->dev) {
-        return GB_OP_UNKNOWN_ERROR;
+    pwmdev->dev = bundle->dev[cport_idx];
+    if (pwmdev->dev == NULL) {
+        return GB_OP_INVALID;
     }
 
     response = gb_operation_alloc_response(operation, sizeof(*response));
@@ -118,29 +103,15 @@ static uint8_t gb_pwm_protocol_count(struct gb_operation *operation)
         return GB_OP_NO_MEMORY;
     }
 
-    ret = device_pwm_get_count(bundle->dev, &count);
-    if (ret) {
-        LOG_INF("%s(): %x error in ops", __func__, ret);
+    count = popcount(pwmdev->channel);
+    if (!count)
         return GB_OP_UNKNOWN_ERROR;
-    }
-
-    if (count == 0 || count > 256) {
-        return GB_OP_UNKNOWN_ERROR;
-    }
-
-    /*
-     * Store the number of generator supported in hardware. The num_pwms is for
-     * checking whether specific generator number is valid in hardware or not
-     * before pass it to device driver.
-     */
-    pwm_info->num_pwms = count;
-
-
+    
     /*
      * Per Greybus specification, the number of generators supported should be
      * one less than the actual number.
      */
-    response->count = (uint8_t)count -1;
+    response->count = count - 1;
 
     return GB_OP_SUCCESS;
 }
@@ -157,36 +128,35 @@ static uint8_t gb_pwm_protocol_count(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_activate(struct gb_operation *operation)
 {
-    struct gb_pwm_info *pwm_info;
-    struct gb_pwm_activate_request *request;
-    struct gb_bundle *bundle;
-    int ret;
+    struct pwm_dt_spec *pwmdev = NULL;
+    struct gb_bundle *bundle = gb_operation_get_bundle(operation);
+    __ASSERT_NO_MSG(bundle != NULL);
+    unsigned int cport_idx = operation->cport - bundle->cport_start;
+    struct gb_pwm_activate_request *request = 
+        gb_operation_get_request_payload(operation);
+
+    pwmdev->dev = bundle->dev[cport_idx];
+    if (pwmdev->dev == NULL) {
+        return GB_OP_INVALID;
+    }
 
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
         LOG_ERR("dropping short message");
         return GB_OP_INVALID;
     }
 
-    bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
-
-    pwm_info = bundle->priv;
-
-    if (!pwm_info || !bundle->dev) {
-        return GB_OP_UNKNOWN_ERROR;
-    }
-
-    request = gb_operation_get_request_payload(operation);
-
-    if (request->which >= pwm_info->num_pwms) {
+    if (request->which >= popcount(pwmdev->channel)) {
         return GB_OP_INVALID;
     }
 
-    ret = device_pwm_activate(bundle->dev, request->which);
-    if (ret) {
-        LOG_INF("%s(): %x error in ops", __func__, ret);
-        return GB_OP_UNKNOWN_ERROR;
-    }
+    /* 
+     * Zephyr doesn't seem to have an "on-off" setting for pwm
+     */
+    // ret = device_pwm_activate(bundle->dev, request->which);
+    // if (ret) {
+    //     LOG_INF("%s(): %x error in ops", __func__, ret);
+    //     return GB_OP_UNKNOWN_ERROR;
+    // }
 
     return GB_OP_SUCCESS;
 }
@@ -203,36 +173,35 @@ static uint8_t gb_pwm_protocol_activate(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_deactivate(struct gb_operation *operation)
 {
-    struct gb_pwm_info *pwm_info;
-    struct gb_pwm_dectivate_request *request;
-    struct gb_bundle *bundle;
-    int ret;
+    struct pwm_dt_spec *pwmdev = NULL;
+    struct gb_bundle *bundle =  gb_operation_get_bundle(operation);
+    __ASSERT_NO_MSG(bundle != NULL);
+    unsigned int cport_idx = operation->cport - bundle->cport_start;
+    struct gb_pwm_dectivate_request *request =
+        gb_operation_get_request_payload(operation);
+
+    pwmdev->dev = bundle->dev[cport_idx];
+    if (pwmdev->dev == NULL) {
+        return GB_OP_INVALID;
+    }
 
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
         LOG_ERR("dropping short message");
         return GB_OP_INVALID;
     }
 
-    bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
-
-    pwm_info = bundle->priv;
-
-    if (!pwm_info || !bundle->dev) {
-        return GB_OP_UNKNOWN_ERROR;
-    }
-
-    request = gb_operation_get_request_payload(operation);
-
-    if (request->which >= pwm_info->num_pwms) {
+    if (request->which >= popcount(pwmdev->channel)) {
         return GB_OP_INVALID;
     }
 
-    ret = device_pwm_deactivate(bundle->dev, request->which);
-    if (ret) {
-        LOG_INF("%s(): %x error in ops", __func__, ret);
-        return GB_OP_UNKNOWN_ERROR;
-    }
+    /**
+     * Zephyr doesn't seem to have an "on-off" setting for pwm
+     */
+    // ret = device_pwm_deactivate(bundle->dev, request->which);
+    // if (ret) {
+    //     LOG_INF("%s(): %x error in ops", __func__, ret);
+    //     return GB_OP_UNKNOWN_ERROR;
+    // }
 
     return GB_OP_SUCCESS;
 }
@@ -250,35 +219,32 @@ static uint8_t gb_pwm_protocol_deactivate(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_config(struct gb_operation *operation)
 {
-    struct gb_pwm_info *pwm_info;
-    struct gb_pwm_config_request *request;
-    struct gb_bundle *bundle;
+    struct pwm_dt_spec *pwmdev = NULL;
+    struct gb_bundle *bundle = gb_operation_get_bundle(operation);
+    __ASSERT_NO_MSG(bundle != NULL);
+    unsigned int cport_idx = operation->cport - bundle->cport_start;
+    struct gb_pwm_config_request *request = 
+        gb_operation_get_request_payload(operation);
     uint32_t duty, period;
     int ret;
+
+    pwmdev->dev = bundle->dev[cport_idx];
+    if (pwmdev->dev == NULL) {
+        return GB_OP_INVALID;
+    }
 
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
         LOG_ERR("dropping short message");
         return GB_OP_INVALID;
     }
 
-    bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
-
-    pwm_info = bundle->priv;
-
-    if (!pwm_info || !bundle->dev) {
-        return GB_OP_UNKNOWN_ERROR;
-    }
-
-    request = gb_operation_get_request_payload(operation);
-
-    if (request->which >= pwm_info->num_pwms) {
+    if (request->which >= popcount(pwmdev->channel)) {
         return GB_OP_INVALID;
     }
 
     duty = sys_le32_to_cpu(request->duty);
     period = sys_le32_to_cpu(request->period);
-    ret = device_pwm_config(bundle->dev, request->which, duty, period);
+    ret = pwm_set_dt(pwmdev, period, duty);
     if (ret) {
         LOG_INF("%s(): %x error in ops", __func__, ret);
         return GB_OP_UNKNOWN_ERROR;
@@ -300,37 +266,28 @@ static uint8_t gb_pwm_protocol_config(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_polarity(struct gb_operation *operation)
 {
-    struct gb_pwm_info *pwm_info;
-    struct gb_pwm_polarity_request *request;
-    struct gb_bundle *bundle;
-    int ret;
+    struct pwm_dt_spec *pwmdev = NULL;
+    struct gb_bundle *bundle = gb_operation_get_bundle(operation);
+    __ASSERT_NO_MSG(bundle != NULL);
+    unsigned int cport_idx = operation->cport - bundle->cport_start;
+    struct gb_pwm_polarity_request *request =
+        gb_operation_get_request_payload(operation);
+
+    pwmdev->dev = bundle->dev[cport_idx];
+    if (pwmdev->dev == NULL) {
+        return GB_OP_INVALID;
+    }
 
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
         LOG_ERR("dropping short message");
         return GB_OP_INVALID;
     }
 
-    bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
-
-    pwm_info = bundle->priv;
-
-    if (!pwm_info || !bundle->dev) {
-        return GB_OP_UNKNOWN_ERROR;
-    }
-
-    request = gb_operation_get_request_payload(operation);
-
-    if (request->which >= pwm_info->num_pwms) {
+    if (request->which >= popcount(pwmdev->channel)) {
         return GB_OP_INVALID;
     }
 
-    ret = device_pwm_set_polarity(bundle->dev, request->which,
-                                          request->polarity);
-    if (ret) {
-        LOG_INF("%s(): %x error in ops", __func__, ret);
-        return GB_OP_UNKNOWN_ERROR;
-    }
+    pwmdev->flags = request->polarity;
 
     return GB_OP_SUCCESS;
 }
@@ -348,36 +305,34 @@ static uint8_t gb_pwm_protocol_polarity(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_enable(struct gb_operation *operation)
 {
-    struct gb_pwm_info *pwm_info;
-    struct gb_pwm_enable_request *request;
-    struct gb_bundle *bundle;
-    int ret;
+    struct pwm_dt_spec *pwmdev = NULL;
+    struct gb_bundle *bundle = gb_operation_get_bundle(operation);
+    __ASSERT_NO_MSG(bundle != NULL);
+    unsigned int cport_idx = operation->cport - bundle->cport_start;
+    struct gb_pwm_enable_request *request =
+        gb_operation_get_request_payload(operation);
 
+    pwmdev->dev = bundle->dev[cport_idx];
+    if (pwmdev->dev == NULL) {
+        return GB_OP_INVALID;
+    }
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
         LOG_ERR("dropping short message");
         return GB_OP_INVALID;
     }
 
-    bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
-
-    pwm_info = bundle->priv;
-
-    if (!pwm_info || !bundle->dev) {
-        return GB_OP_UNKNOWN_ERROR;
-    }
-
-    request = gb_operation_get_request_payload(operation);
-
-    if (request->which >= pwm_info->num_pwms) {
+    if (request->which >= popcount(pwmdev->channel)) {
         return GB_OP_INVALID;
     }
 
-    ret = device_pwm_enable(bundle->dev, request->which);
-    if (ret) {
-        LOG_INF("%s(): error %x in ops return", __func__, ret);
-        return GB_OP_UNKNOWN_ERROR;
-    }
+    /* 
+     * Zephyr doesn't seem to have an "on-off" setting for pwm
+     */
+    // ret = device_pwm_enable(bundle->dev, request->which);
+    // if (ret) {
+    //     LOG_INF("%s(): error %x in ops return", __func__, ret);
+    //     return GB_OP_UNKNOWN_ERROR;
+    // }
 
     return GB_OP_SUCCESS;
 }
@@ -395,36 +350,35 @@ static uint8_t gb_pwm_protocol_enable(struct gb_operation *operation)
  */
 static uint8_t gb_pwm_protocol_disable(struct gb_operation *operation)
 {
-    struct gb_pwm_info *pwm_info;
-    struct gb_pwm_disable_request *request;
-    struct gb_bundle *bundle;
-    int ret;
+    struct pwm_dt_spec *pwmdev = NULL;
+    struct gb_bundle *bundle = gb_operation_get_bundle(operation);
+    __ASSERT_NO_MSG(bundle != NULL);
+    unsigned int cport_idx = operation->cport - bundle->cport_start;
+    struct gb_pwm_disable_request *request
+     = gb_operation_get_request_payload(operation);
+
+    pwmdev->dev = bundle->dev[cport_idx];
+    if (pwmdev->dev == NULL) {
+        return GB_OP_INVALID;
+    }
 
     if (gb_operation_get_request_payload_size(operation) < sizeof(*request)) {
         LOG_ERR("dropping short message");
         return GB_OP_INVALID;
     }
 
-    bundle = gb_operation_get_bundle(operation);
-    DEBUGASSERT(bundle);
-
-    pwm_info = bundle->priv;
-
-    if (!pwm_info || !bundle->dev) {
-        return GB_OP_UNKNOWN_ERROR;
-    }
-
-    request = gb_operation_get_request_payload(operation);
-
-    if (request->which >= pwm_info->num_pwms) {
+    if (request->which >= popcount(pwmdev->channel)) {
         return GB_OP_INVALID;
     }
 
-    ret = device_pwm_disable(bundle->dev, request->which);
-    if (ret) {
-        LOG_INF("%s(): %x error in ops", __func__, ret);
-        return GB_OP_UNKNOWN_ERROR;
-    }
+    /* 
+     * Zephyr doesn't seem to have an "on-off" setting for pwm
+     */
+    // ret = device_pwm_disable(bundle->dev, request->which);
+    // if (ret) {
+    //     LOG_INF("%s(): %x error in ops", __func__, ret);
+    //     return GB_OP_UNKNOWN_ERROR;
+    // }
 
     return GB_OP_SUCCESS;
 }
@@ -443,28 +397,12 @@ static uint8_t gb_pwm_protocol_disable(struct gb_operation *operation)
  */
 int gb_pwm_init(unsigned int cport, struct gb_bundle *bundle)
 {
-    struct gb_pwm_info *pwm_info;
+    unsigned int cport_idx = cport - bundle->cport_start;
 
-    DEBUGASSERT(bundle);
-
-    pwm_info = zalloc(sizeof(*pwm_info));
-    if (!pwm_info) {
-        return -ENOMEM;
-    }
-
-    pwm_info->cport = cport;
-    pwm_info->dev_type = DEVICE_TYPE_PWM_HW;
-    pwm_info->dev_id = 0;
-
-    bundle->dev = device_open(pwm_info->dev_type, pwm_info->dev_id);
-    if (!bundle->dev) {
-        free(pwm_info);
-        LOG_INF("%s(): failed to open device!", __func__);
+    bundle->dev[cport_idx] = (struct device *)gb_cport_to_device(cport);
+    if (!bundle->dev[cport_idx]) {
         return -EIO;
     }
-
-    bundle->priv = pwm_info;
-
     return 0;
 }
 
@@ -479,20 +417,8 @@ int gb_pwm_init(unsigned int cport, struct gb_bundle *bundle)
  */
 void gb_pwm_exit(unsigned int cport, struct gb_bundle *bundle)
 {
-    struct gb_pwm_info *pwm_info;
-
-    DEBUGASSERT(bundle);
-
-    if (bundle->dev) {
-        device_close(bundle->dev);
-    }
-
-    pwm_info = bundle->priv;
-
-    if (pwm_info) {
-        free(pwm_info);
-        pwm_info = NULL;
-    }
+	ARG_UNUSED(cport);
+	ARG_UNUSED(bundle);    
 }
 
 

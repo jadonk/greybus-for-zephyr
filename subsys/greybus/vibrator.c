@@ -33,9 +33,9 @@
 #include <greybus/greybus.h>
 #include <apps/greybus-utils/utils.h>
 #include <gpio.h>
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_vibrator, CONFIG_GREYBUS_LOG_LEVEL);
 
 #include "vibrator-gb.h"

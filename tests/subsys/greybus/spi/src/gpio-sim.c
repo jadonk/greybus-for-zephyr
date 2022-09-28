@@ -6,11 +6,11 @@
 
 #ifdef CONFIG_GPIO_SIM
 
-#include <drivers/gpio.h>
+#include <zephyr/drivers/gpio.h>
 #include <drivers/gpio/gpio_sim.h>
 #include <stdio.h>
-#include <sys/util.h>
-#include <zephyr.h>
+#include <zephyr/sys/util.h>
+#include <zephyr/zephyr.h>
 
 #include "test-greybus-spi.h"
 

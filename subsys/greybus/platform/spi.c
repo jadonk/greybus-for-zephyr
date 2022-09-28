@@ -4,18 +4,18 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <drivers/spi.h>
+#include <zephyr/drivers/spi.h>
 #include <dt-bindings/greybus/greybus.h>
 #include <greybus/greybus.h>
 #include <greybus/platform.h>
 #include <stdint.h>
-#include <sys/byteorder.h>
-#include <zephyr.h>
+#include <zephyr/sys/byteorder.h>
+#include <zephyr/zephyr.h>
 
 #define DT_DRV_COMPAT zephyr_greybus_spi_controller
-#include <device.h>
+#include <zephyr/device.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_platform_spi_control, CONFIG_GREYBUS_LOG_LEVEL);
 
 #include "../spi-gb.h"

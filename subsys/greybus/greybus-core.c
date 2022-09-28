@@ -27,7 +27,7 @@
  *
  * Author: Fabien Parent <fparent@baylibre.com>
  */
-#include <zephyr.h>
+#include <zephyr/zephyr.h>
 
 #include <list.h>
 #include <unipro/unipro.h>
@@ -36,12 +36,12 @@
 //#include <wdog.h>
 #include "greybus-stubs.h"
 //#include <loopback-gb.h>
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 
 #include <greybus-utils/manifest.h>
 
-#include <sys/atomic.h>
-#include <sys/byteorder.h>
+#include <zephyr/sys/atomic.h>
+#include <zephyr/sys/byteorder.h>
 #if defined(CONFIG_BOARD_NATIVE_POSIX_64BIT) \
     || defined(CONFIG_BOARD_NATIVE_POSIX_32BIT) \
     || defined(CONFIG_BOARD_NRF52_BSIM)
@@ -54,8 +54,8 @@ extern int pthread_setname_np(pthread_t thread, const char *name);
 
 #else
 
-#include <posix/pthread.h>
-#include <posix/semaphore.h>
+#include <zephyr/posix/pthread.h>
+#include <zephyr/posix/semaphore.h>
 
 #define DEFAULT_STACK_SIZE      CONFIG_PTHREAD_DYNAMIC_STACK_DEFAULT_SIZE
 
@@ -268,7 +268,7 @@ static void gb_process_request(struct gb_operation_hdr *hdr,
     operation->bundle = g_cport[operation->cport].driver->bundle;
 
     result = op_handler->handler(operation);
-    LOG_DBG("%s: %u", log_strdup(gb_handler_name(op_handler)), result);
+    LOG_DBG("%s: %u", gb_handler_name(op_handler), result);
 
     if (hdr->id)
         gb_operation_send_response(operation, result);

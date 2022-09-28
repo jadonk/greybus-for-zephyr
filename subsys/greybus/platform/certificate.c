@@ -4,10 +4,10 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <zephyr.h>
+#include <zephyr/zephyr.h>
 #include "certificate.h"
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_tls, CONFIG_GREYBUS_LOG_LEVEL);
 
 #ifdef CONFIG_GREYBUS_TLS_BUILTIN

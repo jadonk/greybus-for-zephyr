@@ -39,10 +39,10 @@
 #include <pthread.h>
 #include <semaphore.h>
 #else
-#include <posix/pthread.h>
+#include <zephyr/posix/pthread.h>
 #endif
 
-#include <sys/atomic.h>
+#include <zephyr/sys/atomic.h>
 #include <list.h>
 //#include <util.h>
 #include <unipro/unipro.h>

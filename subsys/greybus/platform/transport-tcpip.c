@@ -5,26 +5,22 @@
  */
 
 #include <errno.h>
-#include <net/dns_sd.h>
+#include <zephyr/net/dns_sd.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
-#include <zephyr.h>
-#include <sys/dlist.h>
+#include <zephyr/zephyr.h>
+#include <zephyr/sys/dlist.h>
 
 #if defined(CONFIG_BOARD_NATIVE_POSIX_64BIT) \
     || defined(CONFIG_BOARD_NATIVE_POSIX_32BIT) \
     || defined(CONFIG_BOARD_NRF52_BSIM)
 
-#include <arpa/inet.h>
-#include <netinet/in.h>
-#include <poll.h>
 #include <pthread.h>
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 #include <sys/types.h>
-#include <sys/socket.h>
-#include <unistd.h>
+#include <zephyr/net/socket.h>
 
 /*
  * There seem to be a number of conflicts between Linux and
@@ -41,16 +37,6 @@
 
 typedef int sec_tag_t;
 
-static inline struct sockaddr_in *net_sin(struct sockaddr *sa)
-{
-	return (struct sockaddr_in *)sa;
-}
-
-static inline struct sockaddr_in6 *net_sin6(struct sockaddr *sa)
-{
-	return (struct sockaddr_in6 *)sa;
-}
-
 /* For some reason, not declared even with _GNU_SOURCE */
 extern int pthread_setname_np(pthread_t thread, const char *name);
 
@@ -60,9 +46,9 @@ extern int usleep(useconds_t usec);
 
 #include <greybus/greybus.h>
 #include <greybus-utils/manifest.h>
-#include <posix/unistd.h>
-#include <posix/pthread.h>
-#include <net/net_ip.h>
+#include <zephyr/posix/unistd.h>
+#include <zephyr/posix/pthread.h>
+#include <zephyr/net/net_ip.h>
 
 unsigned int sleep(unsigned int seconds)
 {
@@ -77,7 +63,7 @@ int usleep(useconds_t usec) {
 
 #endif
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_transport_tcpip, CONFIG_GREYBUS_LOG_LEVEL);
 
 #include "transport.h"
@@ -154,12 +140,18 @@ static struct fd_context *fd_context_new(int fd, int cport, enum fd_context_type
 	ctx->cport = cport;
 	ctx->type = type;
 	sys_dnode_init(&ctx->node);
+	if (&ctx->node)
+	{
+		// LOG_PRINTK("********INITIALIZED DLIST\tCPORT:%d********\n", ctx->cport);
+	}
+	
 
 	return ctx;
 }
 
 static void fd_context_delete(struct fd_context *ctx)
 {
+	// LOG_PRINTK("********FD_CONTEXT_DELETE\tCPORT:%d********\n", ctx->cport);
 	if (ctx == NULL) {
 		return;
 	}
@@ -194,6 +186,7 @@ static bool fd_context_insert(int fd, int cport, enum fd_context_type type)
 		}
 	}
 
+	// LOG_PRINTK("********FD_CONTEXT_INSERT\tCPORT:%d********\n", ctx->cport);
 	sys_dlist_append(&fd_list, &ctx->node);
 	success = true;
 
@@ -299,6 +292,7 @@ static struct fd_context *fd_context_find(int fd, int cport, enum fd_context_typ
 	}
 
 	pthread_mutex_unlock(&fd_list_mutex);
+	// LOG_PRINTK("********FD_CONTEXT_FIND\tCPORT:%d********\n", ctx->cport);
 
 out:
 	return ctx;
@@ -351,7 +345,7 @@ static void accept_new_connection(struct fd_context *ctx)
     }
 
     LOG_DBG("cport %d accepted connection from [%s]:%d as fd %d",
-        ctx->cport, log_strdup(addrstr), ntohs(addr.sin6_port), fd);
+        ctx->cport, addrstr, ntohs(addr.sin6_port), fd);
 }
 
 static void handle_client_input(struct fd_context *ctx)
@@ -569,6 +563,7 @@ static int getMessage(int fd, struct gb_operation_hdr **msg)
 		}
 	}
 
+	// LOG_PRINTK("********GET_MESSAGE, gb: get(%d, %p, %zu, 0)********\n", &((uint8_t *)msg)[offset], remaining, fd);
 	return msg_size;
 }
 
@@ -598,6 +593,7 @@ static int sendMessage(int fd, struct gb_operation_hdr *msg)
 		written = r;
 	}
 
+	// LOG_PRINTK("********SEND_MESSAGE, gb: send(%d, %p, %zu, 0)********\n", &((uint8_t *)msg)[offset], remaining, fd);
 	return 0;
 }
 
@@ -644,6 +640,7 @@ static int gb_xport_send(unsigned int cport, const void *buf, size_t len)
     }
 
     r = sendMessage(ctx->fd, msg);
+	// LOG_PRINTK("********%d\n", r);
     if (r != 0) {
     	fd_context_erase(ctx->fd);
     }

@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <errno.h>
 #include <unipro/unipro.h>
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 
 #include "greybus-stubs.h"
 

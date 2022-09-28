@@ -31,14 +31,14 @@
 #include <string.h>
 //#include <queue.h>
 
-#include <device.h>
+#include <zephyr/device.h>
 //#include <device_hid.h>
 #include <greybus/greybus.h>
 //#include <apps/greybus-utils/utils.h>
 
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_hid, CONFIG_GREYBUS_LOG_LEVEL);
 
 #include "hid-gb.h"

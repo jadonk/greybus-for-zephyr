@@ -39,9 +39,9 @@
 #include <greybus/greybus_timestamp.h>
 #include <time.h>
 #include <util.h>
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_loopback, CONFIG_GREYBUS_LOG_LEVEL);
 
 #define GB_LOOPBACK_VERSION_MAJOR 0
