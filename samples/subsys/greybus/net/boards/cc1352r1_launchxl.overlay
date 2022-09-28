@@ -28,18 +28,21 @@
 		compatible = "zephyr,greybus-mikrobusid";
 		label = "MIKROBUS_0";
 		cs-gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;
-		sclk-gpios = <&gpio0 10 GPIO_ACTIVE_HIGH>;
-		mosi-gpios = <&gpio0 9 GPIO_ACTIVE_HIGH>;
+		rst-gpios = <&gpio0 19 GPIO_ACTIVE_HIGH>;
 	};
 
-	mikrobus1: mikrobus1 {
+	/*
+	 * RST line is shared, thus two clicks cannot be tested on
+	 * launchpad
+	 */
+
+	/*mikrobus1: mikrobus1 {
 		id = <1>;
 		compatible = "zephyr,greybus-mikrobusid";
 		label = "MIKROBUS_1";
 		cs-gpios = <&gpio0 14 GPIO_ACTIVE_HIGH>;
-		sclk-gpios = <&gpio0 10 GPIO_ACTIVE_HIGH>;
-		mosi-gpios = <&gpio0 9 GPIO_ACTIVE_HIGH>;
-	};
+		rst-gpios = <&gpio0 10 GPIO_ACTIVE_HIGH>;
+	};*/
 };
 
 &flash0 {

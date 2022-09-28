@@ -4,18 +4,18 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
-#include <drivers/i2c.h>
+#include <zephyr/drivers/i2c.h>
 #include <dt-bindings/greybus/greybus.h>
 #include <greybus/greybus.h>
 #include <greybus/platform.h>
 #include <stdint.h>
-#include <sys/byteorder.h>
-#include <zephyr.h>
+#include <zephyr/sys/byteorder.h>
+#include <zephyr/zephyr.h>
 
 #define DT_DRV_COMPAT zephyr_greybus_i2c_controller
-#include <device.h>
+#include <zephyr/device.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_platform_i2c_control, CONFIG_GREYBUS_LOG_LEVEL);
 
 #include "../i2c-gb.h"
@@ -80,8 +80,8 @@ static int greybus_i2c_control_init(const struct device *dev) {
                 .id = (uint8_t)DT_INST_PROP(_num, id), \
                 .bundle = (uint8_t)DT_PROP(DT_PARENT(DT_DRV_INST(_num)), id), \
 				.greybus_i2c_controller_name = 								\
-                    DT_LABEL(DT_PHANDLE(DT_DRV_INST(_num), 						\
-                    		greybus_i2c_controller)), 							\
+                    DT_PROP(DT_DRV_INST(_num), 						\
+                    		greybus_i2c_controller), 							\
 				.bus_name = 									\
 					DT_LABEL(DT_PARENT(DT_PARENT(DT_DRV_INST(_num)))),		\
         };																		\

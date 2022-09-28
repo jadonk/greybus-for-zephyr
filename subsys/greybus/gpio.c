@@ -28,18 +28,18 @@
  * Author: Fabien Parent <fparent@baylibre.com>
  */
 
-#include <logging/log.h>
-#include <drivers/gpio.h>
+#include <zephyr/logging/log.h>
+#include <zephyr/drivers/gpio.h>
 #include <greybus/greybus.h>
 #include <greybus/platform.h>
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 
 #if defined(CONFIG_BOARD_NATIVE_POSIX_64BIT) \
 	|| defined(CONFIG_BOARD_NATIVE_POSIX_32BIT) \
 	|| defined(CONFIG_BOARD_NRF52_BSIM)
 #include <semaphore.h>
 #else
-#include <posix/semaphore.h>
+#include <zephyr/posix/semaphore.h>
 #endif
 
 #include "gpio-gb.h"
@@ -186,7 +186,7 @@ static uint8_t gb_gpio_get_direction(struct gb_operation *operation)
 	if (!response)
 		return GB_OP_NO_MEMORY;
 
-	bool dir = gpio_pin_get_direction(dev, request->which);
+	bool dir = gpio_pin_is_input(dev, request->which);
 	/* In Greybus 0 := output, 1 := input. Zephyr is the opposite */
 	response->direction = !dir;
 	return GB_OP_SUCCESS;

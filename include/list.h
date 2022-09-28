@@ -7,7 +7,7 @@
 #define ZEPHYR_INCLUDE_LIST_H_
 
 #include <stdbool.h>
-#include <sys/util.h>
+#include <zephyr/sys/util.h>
 
 #if defined(__cplusplus)
 extern "C" {

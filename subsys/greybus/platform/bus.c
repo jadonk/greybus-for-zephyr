@@ -5,12 +5,12 @@
  */
 
 #include <stdint.h>
-#include <zephyr.h>
+#include <zephyr/zephyr.h>
 
 #define DT_DRV_COMPAT zephyr_greybus
-#include <device.h>
+#include <zephyr/device.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_platform_bus, CONFIG_GREYBUS_LOG_LEVEL);
 
 struct greybus_config {

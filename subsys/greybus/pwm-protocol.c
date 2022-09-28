@@ -31,13 +31,13 @@
 #include <string.h>
 #include <errno.h>
 
-#include <device.h>
+#include <zephyr/device.h>
 #include <device_pwm.h>
 #include <greybus/greybus.h>
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 #include <apps/greybus-utils/utils.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_pwm, CONFIG_GREYBUS_LOG_LEVEL);
 
 #include "pwm-gb.h"

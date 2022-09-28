@@ -5,17 +5,17 @@
  */
 
 #include <stdint.h>
-#include <zephyr.h>
+#include <zephyr/zephyr.h>
 
 #include <errno.h>
-#include <kernel.h>
+#include <zephyr/kernel.h>
 #include <stdlib.h>
 #include <stddef.h>
 
-#include <drivers/gpio.h>
+#include <zephyr/drivers/gpio.h>
 #include "w1-gpio.h"
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(w1_gpio, CONFIG_GREYBUS_LOG_LEVEL);
 
 #define DELAY_NOP "nop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\nnop\n"
@@ -47,7 +47,7 @@ static inline void w1_delay_precise(unsigned int us)
 }
 
 static inline void w1_write_bit(struct w1_io_context *io_context, uint8_t bit) {
-    gpio_config(io_context->w1_gpio, io_context->w1_pin,
+    gpio_pin_configure(io_context->w1_gpio, io_context->w1_pin,
 			  GPIO_PULL_UP | GPIO_OUTPUT);
     if (bit) {
         gpio_pin_set(io_context->w1_gpio, io_context->w1_pin, 0);
@@ -65,14 +65,14 @@ static inline void w1_write_bit(struct w1_io_context *io_context, uint8_t bit) {
 static inline  uint8_t w1_read_bit(struct w1_io_context *io_context) {
     int result;
 
-    gpio_config(io_context->w1_gpio, io_context->w1_pin,
+    gpio_pin_configure(io_context->w1_gpio, io_context->w1_pin,
                 GPIO_PULL_UP | GPIO_OUTPUT);
 	gpio_pin_set(io_context->w1_gpio, io_context->w1_pin, 0);
 	w1_delay_precise(6);
 	gpio_pin_set(io_context->w1_gpio, io_context->w1_pin, 1);
 	w1_delay_precise(9);
 
-    gpio_config(io_context->w1_gpio, io_context->w1_pin,
+    gpio_pin_configure(io_context->w1_gpio, io_context->w1_pin,
 			  GPIO_PULL_UP | GPIO_INPUT);
 
 	result = gpio_pin_get(io_context->w1_gpio, io_context->w1_pin) & 0x1;
@@ -123,13 +123,13 @@ static inline int w1_reset_bus(struct w1_io_context *io_context) {
     unsigned int key;
 
     key = irq_lock();
-    gpio_config(io_context->w1_gpio, io_context->w1_pin,
+    gpio_pin_configure(io_context->w1_gpio, io_context->w1_pin,
 			  GPIO_PULL_UP | GPIO_OUTPUT);
     gpio_pin_set(io_context->w1_gpio, io_context->w1_pin, 0);
     w1_delay_precise(500);
     gpio_pin_set(io_context->w1_gpio, io_context->w1_pin, 1);
     w1_delay_precise(70);
-    gpio_config(io_context->w1_gpio, io_context->w1_pin,
+    gpio_pin_configure(io_context->w1_gpio, io_context->w1_pin,
 			  GPIO_PULL_UP | GPIO_INPUT);
     result = gpio_pin_get(io_context->w1_gpio, io_context->w1_pin) ? 1 : 0;
     irq_unlock(key);

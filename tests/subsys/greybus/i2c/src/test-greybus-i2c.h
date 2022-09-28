@@ -11,9 +11,9 @@
 extern "C" {
 #endif
 
-#include <zephyr.h>
-#include <drivers/i2c.h>
-#include <sys/util.h>
+#include <zephyr/zephyr.h>
+#include <zephyr/drivers/i2c.h>
+#include <zephyr/sys/util.h>
 #include <ztest.h>
 
 #if DT_NODE_HAS_STATUS(DT_INST(0, test_greybus_i2c), okay)

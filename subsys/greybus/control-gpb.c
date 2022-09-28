@@ -30,14 +30,14 @@
 
 #include <greybus/ara_version.h>
 #include <string.h>
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 #include <greybus/greybus.h>
 #include <unipro/unipro.h>
-#include <device.h>
+#include <zephyr/device.h>
 #include <greybus/timesync.h>
 #include <greybus-utils/manifest.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_control, CONFIG_GREYBUS_LOG_LEVEL);
 
 #include "control-gb.h"

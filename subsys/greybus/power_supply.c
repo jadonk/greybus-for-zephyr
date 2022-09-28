@@ -30,14 +30,14 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <sys/byteorder.h>
+#include <zephyr/sys/byteorder.h>
 #include <greybus/greybus.h>
 #include <apps/greybus-utils/utils.h>
 
 #include "power_supply-gb.h"
 #include <device_power_supply.h>
 
-#include <logging/log.h>
+#include <zephyr/logging/log.h>
 LOG_MODULE_REGISTER(greybus_power, CONFIG_GREYBUS_LOG_LEVEL);
 
 /* Version of the Greybus power supply protocol we support */
